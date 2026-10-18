@@ -1,0 +1,929 @@
+{
+ "publishedAt": "2026-10-18T03:30:00.000Z",
+ "settings": {
+  "shopName": "पूजा ड्रेसेस",
+  "shopNameEn": "Pooja Dresses & Vastravatika",
+  "whatsapp": "",
+  "phone": "",
+  "address": "",
+  "hours": "सुबह 9 – रात 9 · 9 am – 9 pm",
+  "instagram": "",
+  "razorpay": "",
+  "deliveryFee": 40,
+  "freeAbove": 999,
+  "pin": "1234",
+  "festival": {
+   "active": true,
+   "id": "diwali",
+   "text": "दिवाली ऑफ़र · 20% तक छूट",
+   "textEn": "Diwali offer · up to 20% off, till Diwali",
+   "color": "#b4562f"
+  },
+  "sale": {
+   "active": false,
+   "cat": "all",
+   "pct": 20
+  }
+ },
+ "items": [
+  {
+   "id": "d001",
+   "name": "सूती चेक कमीज़",
+   "nameEn": "Cotton check shirt",
+   "cat": "men",
+   "type": "shirt",
+   "colorId": "blue",
+   "price": 499,
+   "mrp": 799,
+   "sizes": [
+    "M",
+    "L",
+    "XL"
+   ],
+   "colls": [
+    "diwali"
+   ],
+   "isNew": true,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1792121400000
+  },
+  {
+   "id": "d002",
+   "name": "सफ़ेद फ़ॉर्मल कमीज़",
+   "nameEn": "White formal shirt",
+   "cat": "men",
+   "type": "shirt",
+   "colorId": "white",
+   "price": 549,
+   "mrp": 849,
+   "sizes": [
+    "S",
+    "M",
+    "L",
+    "XL",
+    "XXL"
+   ],
+   "colls": [],
+   "isNew": false,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1790566200000
+  },
+  {
+   "id": "d003",
+   "name": "आसमानी चेक कमीज़",
+   "nameEn": "Sky-blue check shirt",
+   "cat": "men",
+   "type": "shirt",
+   "colorId": "sky",
+   "price": 449,
+   "mrp": 699,
+   "sizes": [
+    "S",
+    "M",
+    "L"
+   ],
+   "colls": [],
+   "isNew": false,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1791516600000
+  },
+  {
+   "id": "d004",
+   "name": "गहरी नीली कमीज़",
+   "nameEn": "Navy formal shirt",
+   "cat": "men",
+   "type": "shirt",
+   "colorId": "navy",
+   "price": 479,
+   "mrp": 699,
+   "sizes": [
+    "L",
+    "XL",
+    "XXL"
+   ],
+   "colls": [
+    "diwali"
+   ],
+   "isNew": true,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1791948600000
+  },
+  {
+   "id": "d005",
+   "name": "मैरून त्योहारी कमीज़",
+   "nameEn": "Maroon festive shirt",
+   "cat": "men",
+   "type": "shirt",
+   "colorId": "maroon",
+   "price": 649,
+   "mrp": 999,
+   "sizes": [
+    "M",
+    "L",
+    "XL"
+   ],
+   "colls": [
+    "diwali",
+    "chhath"
+   ],
+   "isNew": true,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1792207800000
+  },
+  {
+   "id": "d006",
+   "name": "काली पोलो टी-शर्ट",
+   "nameEn": "Black polo T-shirt",
+   "cat": "men",
+   "type": "tshirt",
+   "colorId": "black",
+   "price": 349,
+   "mrp": 499,
+   "sizes": [
+    "M",
+    "L",
+    "XL"
+   ],
+   "colls": [],
+   "isNew": false,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1790998200000
+  },
+  {
+   "id": "d007",
+   "name": "हरी सूती टी-शर्ट",
+   "nameEn": "Green cotton T-shirt",
+   "cat": "men",
+   "type": "tshirt",
+   "colorId": "green",
+   "price": 299,
+   "mrp": 449,
+   "sizes": [
+    "S",
+    "M",
+    "L"
+   ],
+   "colls": [],
+   "isNew": false,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1789702200000
+  },
+  {
+   "id": "d008",
+   "name": "डेनिम जींस",
+   "nameEn": "Denim jeans",
+   "cat": "men",
+   "type": "jeans",
+   "colorId": "navy",
+   "price": 899,
+   "mrp": 1299,
+   "sizes": [
+    "30",
+    "32",
+    "34",
+    "36"
+   ],
+   "colls": [],
+   "isNew": false,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1791257400000
+  },
+  {
+   "id": "d009",
+   "name": "काली स्ट्रेच जींस",
+   "nameEn": "Black stretch jeans",
+   "cat": "men",
+   "type": "jeans",
+   "colorId": "black",
+   "price": 999,
+   "mrp": 1499,
+   "sizes": [
+    "28",
+    "30",
+    "32",
+    "34"
+   ],
+   "colls": [],
+   "isNew": true,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1792035000000
+  },
+  {
+   "id": "d010",
+   "name": "फ़ॉर्मल पैंट",
+   "nameEn": "Formal pant",
+   "cat": "men",
+   "type": "pant",
+   "colorId": "grey",
+   "price": 649,
+   "mrp": 999,
+   "sizes": [
+    "30",
+    "32",
+    "34",
+    "36"
+   ],
+   "colls": [],
+   "isNew": false,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1790134200000
+  },
+  {
+   "id": "d011",
+   "name": "क्रीम लिनन कुर्ता",
+   "nameEn": "Cream linen kurta",
+   "cat": "men",
+   "type": "kurta",
+   "colorId": "cream",
+   "price": 749,
+   "mrp": 1099,
+   "sizes": [
+    "M",
+    "L",
+    "XL"
+   ],
+   "colls": [
+    "diwali",
+    "chhath"
+   ],
+   "isNew": true,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1791775800000
+  },
+  {
+   "id": "d012",
+   "name": "चेक लुंगी",
+   "nameEn": "Check lungi",
+   "cat": "men",
+   "type": "lungi",
+   "colorId": "green",
+   "price": 199,
+   "mrp": 299,
+   "sizes": [
+    "Free"
+   ],
+   "colls": [],
+   "isNew": false,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1788838200000
+  },
+  {
+   "id": "d013",
+   "name": "ऊनी स्वेटर",
+   "nameEn": "Wool sweater",
+   "cat": "men",
+   "type": "sweater",
+   "colorId": "brown",
+   "price": 799,
+   "mrp": 1199,
+   "sizes": [
+    "M",
+    "L",
+    "XL"
+   ],
+   "colls": [
+    "winter"
+   ],
+   "isNew": true,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1792121400000
+  },
+  {
+   "id": "d014",
+   "name": "पफ़र जैकेट",
+   "nameEn": "Puffer jacket",
+   "cat": "men",
+   "type": "jacket",
+   "colorId": "navy",
+   "price": 1499,
+   "mrp": 2199,
+   "sizes": [
+    "M",
+    "L",
+    "XL"
+   ],
+   "colls": [
+    "winter"
+   ],
+   "isNew": true,
+   "inStock": false,
+   "photos": [],
+   "createdAt": 1791862200000
+  },
+  {
+   "id": "d015",
+   "name": "प्रिंटेड कुर्ती",
+   "nameEn": "Printed kurti",
+   "cat": "women",
+   "type": "kurti",
+   "colorId": "yellow",
+   "price": 599,
+   "mrp": 899,
+   "sizes": [
+    "S",
+    "M",
+    "L",
+    "XL"
+   ],
+   "colls": [
+    "chhath"
+   ],
+   "isNew": false,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1791603000000
+  },
+  {
+   "id": "d016",
+   "name": "मैरून सूती कुर्ती",
+   "nameEn": "Maroon cotton kurti",
+   "cat": "women",
+   "type": "kurti",
+   "colorId": "maroon",
+   "price": 549,
+   "mrp": 799,
+   "sizes": [
+    "M",
+    "L",
+    "XL"
+   ],
+   "colls": [
+    "diwali"
+   ],
+   "isNew": true,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1792035000000
+  },
+  {
+   "id": "d017",
+   "name": "लाल अनारकली कुर्ती",
+   "nameEn": "Red anarkali kurti",
+   "cat": "women",
+   "type": "kurti",
+   "colorId": "red",
+   "price": 799,
+   "mrp": 1199,
+   "sizes": [
+    "M",
+    "L"
+   ],
+   "colls": [
+    "diwali"
+   ],
+   "isNew": true,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1792207800000
+  },
+  {
+   "id": "d018",
+   "name": "गुलाबी कुर्ती सेट",
+   "nameEn": "Pink kurti set",
+   "cat": "women",
+   "type": "suit",
+   "colorId": "pink",
+   "price": 899,
+   "mrp": 1299,
+   "sizes": [
+    "S",
+    "M",
+    "L"
+   ],
+   "colls": [],
+   "isNew": false,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1790739000000
+  },
+  {
+   "id": "d019",
+   "name": "काली लेगिंग्स",
+   "nameEn": "Black leggings",
+   "cat": "women",
+   "type": "leggings",
+   "colorId": "black",
+   "price": 249,
+   "mrp": 399,
+   "sizes": [
+    "Free"
+   ],
+   "colls": [],
+   "isNew": false,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1790393400000
+  },
+  {
+   "id": "d020",
+   "name": "लेडीज़ नीली जींस",
+   "nameEn": "Ladies blue jeans",
+   "cat": "women",
+   "type": "ladiesjeans",
+   "colorId": "blue",
+   "price": 799,
+   "mrp": 1199,
+   "sizes": [
+    "28",
+    "30",
+    "32"
+   ],
+   "colls": [],
+   "isNew": false,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1791430200000
+  },
+  {
+   "id": "d021",
+   "name": "सफ़ेद क्रॉप टॉप",
+   "nameEn": "White crop top",
+   "cat": "women",
+   "type": "croptop",
+   "colorId": "white",
+   "price": 349,
+   "mrp": 499,
+   "sizes": [
+    "S",
+    "M",
+    "L"
+   ],
+   "colls": [],
+   "isNew": true,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1791948600000
+  },
+  {
+   "id": "d022",
+   "name": "पीला दुपट्टा",
+   "nameEn": "Yellow dupatta",
+   "cat": "women",
+   "type": "dupatta",
+   "colorId": "yellow",
+   "price": 199,
+   "mrp": 299,
+   "sizes": [
+    "Free"
+   ],
+   "colls": [
+    "chhath"
+   ],
+   "isNew": true,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1791689400000
+  },
+  {
+   "id": "d023",
+   "name": "ऊनी शॉल",
+   "nameEn": "Wool shawl",
+   "cat": "women",
+   "type": "shawl",
+   "colorId": "maroon",
+   "price": 699,
+   "mrp": 999,
+   "sizes": [
+    "Free"
+   ],
+   "colls": [
+    "winter"
+   ],
+   "isNew": true,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1792121400000
+  },
+  {
+   "id": "d024",
+   "name": "गुलाबी फ़्रॉक",
+   "nameEn": "Pink frock",
+   "cat": "kids",
+   "type": "frock",
+   "colorId": "pink",
+   "price": 399,
+   "mrp": 599,
+   "sizes": [
+    "3-5",
+    "6-8"
+   ],
+   "colls": [
+    "diwali"
+   ],
+   "isNew": true,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1792035000000
+  },
+  {
+   "id": "d025",
+   "name": "पीली फ़्रॉक",
+   "nameEn": "Yellow party frock",
+   "cat": "kids",
+   "type": "frock",
+   "colorId": "yellow",
+   "price": 499,
+   "mrp": 699,
+   "sizes": [
+    "3-5",
+    "6-8",
+    "9-12"
+   ],
+   "colls": [],
+   "isNew": false,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1791084600000
+  },
+  {
+   "id": "d026",
+   "name": "बेबी सूट सेट",
+   "nameEn": "Baby suit set",
+   "cat": "kids",
+   "type": "babysuit",
+   "colorId": "sky",
+   "price": 349,
+   "mrp": 499,
+   "sizes": [
+    "0-2"
+   ],
+   "colls": [],
+   "isNew": false,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1791516600000
+  },
+  {
+   "id": "d027",
+   "name": "बच्चों का ऊनी स्वेटर",
+   "nameEn": "Kids wool sweater",
+   "cat": "kids",
+   "type": "kidssweater",
+   "colorId": "red",
+   "price": 449,
+   "mrp": 650,
+   "sizes": [
+    "3-5",
+    "6-8",
+    "9-12"
+   ],
+   "colls": [
+    "winter"
+   ],
+   "isNew": true,
+   "inStock": false,
+   "photos": [],
+   "createdAt": 1792207800000
+  },
+  {
+   "id": "d028",
+   "name": "बच्चों की जींस",
+   "nameEn": "Kids jeans",
+   "cat": "kids",
+   "type": "kidsjeans",
+   "colorId": "blue",
+   "price": 399,
+   "mrp": 599,
+   "sizes": [
+    "3-5",
+    "6-8",
+    "9-12"
+   ],
+   "colls": [],
+   "isNew": false,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1790911800000
+  },
+  {
+   "id": "d029",
+   "name": "बच्चों की टी-शर्ट",
+   "nameEn": "Kids T-shirt",
+   "cat": "kids",
+   "type": "kidstshirt",
+   "colorId": "orange",
+   "price": 199,
+   "mrp": 299,
+   "sizes": [
+    "3-5",
+    "6-8"
+   ],
+   "colls": [],
+   "isNew": false,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1791343800000
+  },
+  {
+   "id": "d030",
+   "name": "बनारसी सिल्क साड़ी",
+   "nameEn": "Banarasi silk saree",
+   "cat": "saree",
+   "type": "banarasi",
+   "colorId": "red",
+   "price": 1899,
+   "mrp": 2600,
+   "sizes": [
+    "Free"
+   ],
+   "colls": [
+    "diwali"
+   ],
+   "isNew": true,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1792121400000
+  },
+  {
+   "id": "d031",
+   "name": "पीली सूती साड़ी",
+   "nameEn": "Yellow cotton saree",
+   "cat": "saree",
+   "type": "cottonsaree",
+   "colorId": "yellow",
+   "price": 699,
+   "mrp": 999,
+   "sizes": [
+    "Free"
+   ],
+   "colls": [
+    "chhath"
+   ],
+   "isNew": true,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1791862200000
+  },
+  {
+   "id": "d032",
+   "name": "हरी शिफ़ॉन साड़ी",
+   "nameEn": "Green chiffon saree",
+   "cat": "saree",
+   "type": "chiffon",
+   "colorId": "green",
+   "price": 999,
+   "mrp": 1499,
+   "sizes": [
+    "Free"
+   ],
+   "colls": [],
+   "isNew": false,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1790652600000
+  },
+  {
+   "id": "d033",
+   "name": "गुलाबी जॉर्जेट साड़ी",
+   "nameEn": "Pink georgette saree",
+   "cat": "saree",
+   "type": "georgette",
+   "colorId": "pink",
+   "price": 1199,
+   "mrp": 1699,
+   "sizes": [
+    "Free"
+   ],
+   "colls": [
+    "diwali"
+   ],
+   "isNew": true,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1791775800000
+  },
+  {
+   "id": "d034",
+   "name": "नारंगी छठ साड़ी",
+   "nameEn": "Orange Chhath saree",
+   "cat": "saree",
+   "type": "cottonsaree",
+   "colorId": "orange",
+   "price": 799,
+   "mrp": 1099,
+   "sizes": [
+    "Free"
+   ],
+   "colls": [
+    "chhath"
+   ],
+   "isNew": true,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1792207800000
+  },
+  {
+   "id": "d035",
+   "name": "सुनहरा ब्लाउज़",
+   "nameEn": "Ready blouse",
+   "cat": "saree",
+   "type": "blouse",
+   "colorId": "maroon",
+   "price": 299,
+   "mrp": 449,
+   "sizes": [
+    "S",
+    "M",
+    "L",
+    "XL"
+   ],
+   "colls": [],
+   "isNew": false,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1791257400000
+  },
+  {
+   "id": "d036",
+   "name": "सूती पेटीकोट",
+   "nameEn": "Cotton petticoat",
+   "cat": "saree",
+   "type": "petticoat",
+   "colorId": "cream",
+   "price": 199,
+   "mrp": 299,
+   "sizes": [
+    "Free"
+   ],
+   "colls": [],
+   "isNew": false,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1789702200000
+  },
+  {
+   "id": "d037",
+   "name": "सूती बनियान",
+   "nameEn": "Cotton vest",
+   "cat": "inner",
+   "type": "vest",
+   "colorId": "white",
+   "price": 149,
+   "mrp": 199,
+   "sizes": [
+    "M",
+    "L",
+    "XL",
+    "XXL"
+   ],
+   "colls": [],
+   "isNew": false,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1790566200000
+  },
+  {
+   "id": "d038",
+   "name": "पुरुष अंडरवियर (3)",
+   "nameEn": "Men briefs pack of 3",
+   "cat": "inner",
+   "type": "brief",
+   "colorId": "grey",
+   "price": 299,
+   "mrp": 399,
+   "sizes": [
+    "M",
+    "L",
+    "XL"
+   ],
+   "colls": [],
+   "isNew": false,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1790134200000
+  },
+  {
+   "id": "d039",
+   "name": "सूती ब्रा",
+   "nameEn": "Cotton bra",
+   "cat": "inner",
+   "type": "bra",
+   "colorId": "pink",
+   "price": 249,
+   "mrp": 349,
+   "sizes": [
+    "S",
+    "M",
+    "L"
+   ],
+   "colls": [],
+   "isNew": false,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1790825400000
+  },
+  {
+   "id": "d040",
+   "name": "थर्मल इनर सेट",
+   "nameEn": "Thermal inner set",
+   "cat": "inner",
+   "type": "thermal",
+   "colorId": "grey",
+   "price": 599,
+   "mrp": 899,
+   "sizes": [
+    "M",
+    "L",
+    "XL"
+   ],
+   "colls": [
+    "winter"
+   ],
+   "isNew": true,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1792035000000
+  },
+  {
+   "id": "d041",
+   "name": "चमड़े की बेल्ट",
+   "nameEn": "Leather belt",
+   "cat": "acc",
+   "type": "belt",
+   "colorId": "brown",
+   "price": 299,
+   "mrp": 450,
+   "sizes": [
+    "Free"
+   ],
+   "colls": [],
+   "isNew": true,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1791775800000
+  },
+  {
+   "id": "d042",
+   "name": "लेडीज़ पर्स",
+   "nameEn": "Ladies purse",
+   "cat": "acc",
+   "type": "purse",
+   "colorId": "maroon",
+   "price": 449,
+   "mrp": 699,
+   "sizes": [
+    "Free"
+   ],
+   "colls": [
+    "diwali"
+   ],
+   "isNew": false,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1791516600000
+  },
+  {
+   "id": "d043",
+   "name": "ऊनी मोज़े (2 जोड़ी)",
+   "nameEn": "Wool socks, 2 pairs",
+   "cat": "acc",
+   "type": "socks",
+   "colorId": "grey",
+   "price": 149,
+   "mrp": 199,
+   "sizes": [
+    "Free"
+   ],
+   "colls": [
+    "winter"
+   ],
+   "isNew": true,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1791948600000
+  },
+  {
+   "id": "d044",
+   "name": "ऊनी टोपी",
+   "nameEn": "Wool cap",
+   "cat": "acc",
+   "type": "cap",
+   "colorId": "navy",
+   "price": 199,
+   "mrp": 299,
+   "sizes": [
+    "Free"
+   ],
+   "colls": [
+    "winter"
+   ],
+   "isNew": true,
+   "inStock": true,
+   "photos": [],
+   "createdAt": 1792121400000
+  }
+ ]
+}
