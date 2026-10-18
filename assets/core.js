@@ -5,23 +5,23 @@
 
   /* ---------- Catalogue vocabulary ---------- */
   const CATS = [
-    { id: 'men', hi: 'पुरुष', en: 'Men', icon: 'shirt', tint: 'sage', words: ['पुरुष', 'मर्द', 'मरद', 'आदमी', 'जेंट्स', 'लड़का', 'लइका', 'men', 'mens', 'gents', 'male'] },
-    { id: 'women', hi: 'महिला', en: 'Women', icon: 'kurti', tint: 'terra', words: ['महिला', 'औरत', 'लेडीज', 'मेहरारू', 'जनाना', 'लड़की', 'लइकी', 'women', 'ladies', 'lady', 'female'] },
-    { id: 'kids', hi: 'बच्चे', en: 'Kids', icon: 'kids', tint: 'sage', words: ['बच्चे', 'बच्चा', 'बच्चन', 'बचवा', 'बबुआ', 'बेबी', 'kids', 'kid', 'baby', 'child', 'children'] },
+    { id: 'men', hi: 'पुरुष', en: 'Men', icon: 'shirt', tint: 'sage', words: ['पुरुष', 'मर्द', 'मरद', 'आदमी', 'जेंट्स', 'लड़का', 'लइका', 'men', 'mens', 'gents', 'male', 'man', 'boys', 'boy', 'मेन्स', 'मेंस', 'बॉयज'] },
+    { id: 'women', hi: 'महिला', en: 'Women', icon: 'kurti', tint: 'terra', words: ['महिला', 'औरत', 'लेडीज', 'मेहरारू', 'जनाना', 'लड़की', 'लइकी', 'women', 'womens', 'ladies', 'lady', 'female', 'girls', 'girl', 'वूमेन', 'वीमेन', 'गर्ल्स'] },
+    { id: 'kids', hi: 'बच्चे', en: 'Kids', icon: 'kids', tint: 'sage', words: ['बच्चे', 'बच्चा', 'बच्चन', 'बचवा', 'बबुआ', 'बेबी', 'kids', 'kid', 'baby', 'child', 'children', 'किड्स', 'बच्चों', 'बच्ची', 'बेटा', 'बेटी'] },
     { id: 'saree', hi: 'साड़ी', en: 'Sarees · Vastravatika', icon: 'saree', tint: 'terra', words: ['वस्त्रवाटिका', 'vastravatika'] },
     { id: 'inner', hi: 'इनरवियर', en: 'Innerwear', icon: 'vest', tint: 'sage', words: ['इनरवियर', 'अंडरगारमेंट', 'innerwear', 'undergarment'] },
     { id: 'acc', hi: 'एक्सेसरीज़', en: 'Accessories', icon: 'bag', tint: 'terra', words: ['एक्सेसरीज', 'accessories', 'accessory'] }
   ];
 
   const TYPES = [
-    { id: 'shirt', cat: 'men', hi: 'कमीज़', en: 'Shirt', shape: 'shirt', words: ['कमीज', 'कमीज़', 'शर्ट', 'सर्ट', 'shirt', 'kameez', 'kamij'] },
-    { id: 'tshirt', cat: 'men', hi: 'टी-शर्ट', en: 'T-shirt', shape: 'tshirt', words: ['टीशर्ट', 'टी-शर्ट', 'टी', 'tshirt', 't-shirt', 'tee', 'polo', 'पोलो'] },
+    { id: 'shirt', cat: 'men', hi: 'कमीज़', en: 'Shirt', shape: 'shirt', words: ['कमीज', 'कमीज़', 'शर्ट', 'सर्ट', 'shirt', 'shirts', 'kameez', 'kamij'] },
+    { id: 'tshirt', cat: 'men', hi: 'टी-शर्ट', en: 'T-shirt', shape: 'tshirt', words: ['टीशर्ट', 'टी-शर्ट', 'टी शर्ट', 'टी', 'tshirt', 't-shirt', 't shirt', 'tee', 'tees', 'polo', 'पोलो'] },
     { id: 'jeans', cat: 'men', hi: 'जींस', en: 'Jeans', shape: 'pant', words: ['जींस', 'जीन्स', 'जीन', 'jeans', 'jean', 'denim', 'डेनिम'] },
-    { id: 'pant', cat: 'men', hi: 'पैंट', en: 'Pant', shape: 'pant', words: ['पैंट', 'पेंट', 'पतलून', 'फुलपैंट', 'pant', 'pants', 'trouser', 'trousers'] },
+    { id: 'pant', cat: 'men', hi: 'पैंट', en: 'Pant', shape: 'pant', words: ['पैंट', 'पेंट', 'पतलून', 'फुलपैंट', 'ट्राउजर', 'pant', 'pants', 'trouser', 'trousers', 'formal pant'] },
     { id: 'kurta', cat: 'men', hi: 'कुर्ता', en: 'Kurta', shape: 'kurti', words: ['कुर्ता', 'कुरता', 'kurta'] },
     { id: 'lungi', cat: 'men', hi: 'लुंगी', en: 'Lungi', shape: 'shawl', words: ['लुंगी', 'लुंगि', 'lungi'] },
     { id: 'jacket', cat: 'men', hi: 'जैकेट', en: 'Jacket', shape: 'jacket', words: ['जैकेट', 'जाकेट', 'jacket'] },
-    { id: 'sweater', cat: 'men', hi: 'स्वेटर', en: 'Sweater', shape: 'tshirt', words: ['स्वेटर', 'सुइटर', 'ऊनी', 'sweater', 'woollen', 'woolen'] },
+    { id: 'sweater', cat: 'men', hi: 'स्वेटर', en: 'Sweater', shape: 'tshirt', words: ['स्वेटर', 'सुइटर', 'ऊनी', 'sweater', 'sweaters', 'woollen', 'woolen', 'pullover'] },
     { id: 'kurti', cat: 'women', hi: 'कुर्ती', en: 'Kurti', shape: 'kurti', words: ['कुर्ती', 'कुरती', 'kurti'] },
     { id: 'leggings', cat: 'women', hi: 'लेगिंग्स', en: 'Leggings', shape: 'pant', words: ['लेगिंग', 'लेगिंग्स', 'लेगी', 'leggings', 'legging'] },
     { id: 'ladiesjeans', cat: 'women', hi: 'लेडीज़ जींस', en: 'Ladies jeans', shape: 'pant', words: ['लेडीज जींस', 'ladies jeans'] },
@@ -52,7 +52,7 @@
     { id: 'hanky', cat: 'acc', hi: 'रूमाल', en: 'Handkerchief', shape: 'shawl', words: ['रूमाल', 'रुमाल', 'hanky', 'handkerchief'] }
   ];
   // words that mean the category "saree" generally
-  const SAREE_WORDS = ['साड़ी', 'साडी', 'सारी', 'saree', 'sari', 'sadi'];
+  const SAREE_WORDS = ['साड़ी', 'साडी', 'सारी', 'सारी', 'saree', 'sarees', 'sari', 'saris', 'sadi'];
 
   // cross suggestions: "goes with"
   const GOES_WITH = {
@@ -74,20 +74,20 @@
   ];
 
   const COLORS = [
-    { id: 'red', hi: 'लाल', en: 'Red', hex: '#c0392b', words: ['लाल', 'ललका', 'red', 'lal', 'laal'] },
+    { id: 'red', hi: 'लाल', en: 'Red', hex: '#c0392b', words: ['लाल', 'ललका', 'रेड', 'red', 'lal', 'laal'] },
     { id: 'maroon', hi: 'मैरून', en: 'Maroon', hex: '#7a1f2b', words: ['मैरून', 'मरून', 'कत्थई', 'maroon'] },
-    { id: 'pink', hi: 'गुलाबी', en: 'Pink', hex: '#d96c98', words: ['गुलाबी', 'pink', 'gulabi'] },
-    { id: 'orange', hi: 'नारंगी', en: 'Orange', hex: '#e07b28', words: ['नारंगी', 'केसरिया', 'भगवा', 'orange', 'saffron'] },
-    { id: 'yellow', hi: 'पीला', en: 'Yellow', hex: '#e2b51f', words: ['पीला', 'पीली', 'पियर', 'पियरी', 'yellow', 'peela', 'pila'] },
-    { id: 'green', hi: 'हरा', en: 'Green', hex: '#3f8a4f', words: ['हरा', 'हरी', 'हरियर', 'green', 'hara'] },
-    { id: 'blue', hi: 'नीला', en: 'Blue', hex: '#2f5d9a', words: ['नीला', 'नीली', 'नीलका', 'blue', 'neela', 'nila'] },
-    { id: 'sky', hi: 'आसमानी', en: 'Sky blue', hex: '#79aee0', words: ['आसमानी', 'sky'] },
+    { id: 'pink', hi: 'गुलाबी', en: 'Pink', hex: '#d96c98', words: ['गुलाबी', 'पिंक', 'pink', 'gulabi'] },
+    { id: 'orange', hi: 'नारंगी', en: 'Orange', hex: '#e07b28', words: ['नारंगी', 'केसरिया', 'भगवा', 'ऑरेंज', 'ओरेंज', 'orange', 'saffron'] },
+    { id: 'yellow', hi: 'पीला', en: 'Yellow', hex: '#e2b51f', words: ['पीला', 'पीली', 'पियर', 'पियरी', 'येलो', 'yellow', 'peela', 'pila'] },
+    { id: 'green', hi: 'हरा', en: 'Green', hex: '#3f8a4f', words: ['हरा', 'हरी', 'हरियर', 'ग्रीन', 'green', 'hara'] },
+    { id: 'blue', hi: 'नीला', en: 'Blue', hex: '#2f5d9a', words: ['नीला', 'नीली', 'नीलका', 'ब्लू', 'blue', 'neela', 'nila'] },
+    { id: 'sky', hi: 'आसमानी', en: 'Sky blue', hex: '#79aee0', words: ['आसमानी', 'स्काई', 'sky', 'skyblue'] },
     { id: 'navy', hi: 'गहरा नीला', en: 'Navy', hex: '#1f2f55', words: ['नेवी', 'navy'] },
-    { id: 'purple', hi: 'बैंगनी', en: 'Purple', hex: '#6d3f8e', words: ['बैंगनी', 'जामुनी', 'purple'] },
-    { id: 'brown', hi: 'भूरा', en: 'Brown', hex: '#7b5233', words: ['भूरा', 'भूरी', 'brown'] },
-    { id: 'black', hi: 'काला', en: 'Black', hex: '#262626', words: ['काला', 'काली', 'करिया', 'black', 'kala', 'kaala'] },
-    { id: 'white', hi: 'सफ़ेद', en: 'White', hex: '#f1efe8', words: ['सफेद', 'सफ़ेद', 'उज्जर', 'white', 'safed'] },
-    { id: 'grey', hi: 'स्लेटी', en: 'Grey', hex: '#8a8d90', words: ['स्लेटी', 'ग्रे', 'grey', 'gray'] },
+    { id: 'purple', hi: 'बैंगनी', en: 'Purple', hex: '#6d3f8e', words: ['बैंगनी', 'जामुनी', 'पर्पल', 'purple', 'violet'] },
+    { id: 'brown', hi: 'भूरा', en: 'Brown', hex: '#7b5233', words: ['भूरा', 'भूरी', 'ब्राउन', 'brown'] },
+    { id: 'black', hi: 'काला', en: 'Black', hex: '#262626', words: ['काला', 'काली', 'करिया', 'ब्लैक', 'black', 'kala', 'kaala'] },
+    { id: 'white', hi: 'सफ़ेद', en: 'White', hex: '#f1efe8', words: ['सफेद', 'सफ़ेद', 'उज्जर', 'व्हाइट', 'वाइट', 'white', 'safed'] },
+    { id: 'grey', hi: 'स्लेटी', en: 'Grey', hex: '#8a8d90', words: ['स्लेटी', 'ग्रे', 'grey', 'gray', 'silver'] },
     { id: 'cream', hi: 'क्रीम', en: 'Cream', hex: '#e8dcc0', words: ['क्रीम', 'cream', 'beige'] }
   ];
 
@@ -232,16 +232,18 @@
   function norm(s) {
     return String(s || '').toLowerCase()
       .replace(/[०-९]/g, d => HI_DIGITS[d])
+      .replace(/(\d),(?=\d)/g, '$1')
       .replace(/़/g, '')            // nukta
       .replace(/ँ/g, 'ं')      // chandrabindu -> anusvara
       .replace(/[​-‍]/g, '')
       .replace(/[.,!?;:()"'“”‘’|।]/g, ' ')
       .replace(/\s+/g, ' ').trim();
   }
-  const NUM_WORDS = { 'एक': 1, 'दो': 2, 'तीन': 3, 'चार': 4, 'पांच': 5, 'पाँच': 5, 'छह': 6, 'छः': 6, 'छे': 6, 'सात': 7, 'आठ': 8, 'नौ': 9, 'दस': 10, 'डेढ': 1.5, 'ढाई': 2.5, 'पंद्रह': 15, 'बीस': 20 };
+  const NUM_WORDS = { 'एक': 1, 'दो': 2, 'तीन': 3, 'चार': 4, 'पांच': 5, 'पाँच': 5, 'छह': 6, 'छः': 6, 'छे': 6, 'सात': 7, 'आठ': 8, 'नौ': 9, 'दस': 10, 'डेढ': 1.5, 'ढाई': 2.5, 'ग्यारह': 11, 'बारह': 12, 'तेरह': 13, 'चौदह': 14, 'पंद्रह': 15, 'सोलह': 16, 'सत्रह': 17, 'अठारह': 18, 'उन्नीस': 19, 'बीस': 20, 'पच्चीस': 25 };
+  const EN_NUM = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16, seventeen: 17, eighteen: 18, nineteen: 19, twenty: 20, thirty: 30, forty: 40, fifty: 50, sixty: 60, seventy: 70, eighty: 80, ninety: 90, hundred: 'h', thousand: 'k', 'हंड्रेड': 'h', 'थाउजेंड': 'k', 'फाइव': 5, 'टू': 2, 'वन': 1, 'थ्री': 3 };
   const MULT = { 'सौ': 100, 'सै': 100, 'हजार': 1000, 'हज़ार': 1000, 'hazar': 1000, 'hajar': 1000, 'sau': 100 };
-  const PRICE_WORDS = ['तक', 'भीतर', 'भितरी', 'अंदर', 'नीचे', 'कम', 'तले', 'under', 'below', 'within', 'upto', 'less', 'रुपया', 'रुपये', 'रुपए', 'रूपया', 'rs', '₹', 'tak', 'tk', 'neeche', 'niche', 'andar', 'bhitar', 'kam', 'se'];
-  const STOP = ['देखाईं', 'देखाई', 'देखाव', 'दिखाओ', 'दिखाइए', 'दिखाइये', 'दिखा', 'देखा', 'चाहीं', 'चाही', 'चाहिए', 'चाहिये', 'चाहिएं', 'हमरा', 'हमके', 'हमको', 'मुझे', 'मेरे', 'खातिर', 'लिए', 'लिये', 'के', 'का', 'की', 'को', 'में', 'से', 'वाला', 'वाली', 'वाले', 'कुछ', 'और', 'एगो', 'एक', 'गो', 'बा', 'है', 'हैं', 'ना', 'जी', 'please', 'show', 'me', 'for', 'the', 'a', 'want', 'of', 'in', 'rupees', 'rupee', 'ka', 'ki', 'ke', 'wala', 'wali', 'dikhao'];
+  const PRICE_WORDS = ['तक', 'भीतर', 'भितरी', 'अंदर', 'नीचे', 'कम', 'तले', 'under', 'below', 'within', 'upto', 'less', 'रुपया', 'रुपये', 'रुपए', 'रूपया', 'rs', '₹', 'than', 'cheaper', 'max', 'अंडर', 'बिलो', 'लेस', 'मैक्स', 'tak', 'tk', 'neeche', 'niche', 'andar', 'bhitar', 'kam', 'se'];
+  const STOP = ['देखाईं', 'देखाई', 'देखाव', 'दिखाओ', 'दिखाइए', 'दिखाइये', 'दिखा', 'देखा', 'चाहीं', 'चाही', 'चाहिए', 'चाहिये', 'चाहिएं', 'हमरा', 'हमके', 'हमको', 'मुझे', 'मेरे', 'खातिर', 'लिए', 'लिये', 'के', 'का', 'की', 'को', 'में', 'से', 'वाला', 'वाली', 'वाले', 'कुछ', 'और', 'एगो', 'एक', 'गो', 'बा', 'है', 'हैं', 'ना', 'जी', 'please', 'show', 'me', 'for', 'the', 'a', 'want', 'of', 'in', 'rupees', 'rupee', 'ka', 'ki', 'ke', 'wala', 'wali', 'dikhao', 'i', 'need', 'some', 'any', 'and', 'with', 'please', 'plz', 'sir', 'bhaiya', 'भैया', 'भइया', 'जरा', 'तनी', 'दीं', 'दिखाईं', 'देखावल', 'चाहत', 'बानी', 'हम', 'हमनी', 'मेरा', 'मेरी', 'दिखाना', 'दिखाओ'];
 
   let VOCAB = null;
   function buildVocab() {
@@ -270,7 +272,15 @@
       const t = toks[i];
       let val = null, span = 1;
       const m = t.match(/^₹?(\d{2,6})$/);
-      if (m) {
+      if (EN_NUM[t] != null) {
+        let total = 0, cur = 0, j = i;
+        while (j < toks.length && EN_NUM[toks[j]] != null && !used[j]) {
+          const n = EN_NUM[toks[j]];
+          if (n === 'h') cur = (cur || 1) * 100; else if (n === 'k') { total += (cur || 1) * 1000; cur = 0; } else cur += n;
+          j++;
+        }
+        val = total + cur; span = j - i;
+      } else if (m) {
         val = +m[1];
         if (toks[i + 1] && MULT[toks[i + 1]]) { val *= MULT[toks[i + 1]]; span = 2; }
       } else if (NUM_WORDS[t] != null && toks[i + 1] && MULT[toks[i + 1]]) {
@@ -462,7 +472,63 @@
     return 'https://wa.me/' + full + '?text=' + encodeURIComponent(text || '');
   }
 
+  /* ---------- Voice: Hindi/Bhojpuri (hi-IN) and English (en-IN) ---------- */
+  const VOICE_LANGS = [
+    { id: 'hi-IN', hi: 'हिंदी / भोजपुरी', en: 'Hindi / Bhojpuri', example: 'नीला कमीज देखाईं, पाँच सौ के भीतर' },
+    { id: 'en-IN', hi: 'अंग्रेज़ी', en: 'English', example: 'blue shirt under 500' }
+  ];
+  const voiceSupported = () => !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+  const voiceLang = () => { const l = ls.get('pd_vlang', 'hi-IN'); return VOICE_LANGS.some(v => v.id === l) ? l : 'hi-IN'; };
+  const setVoiceLang = l => ls.set('pd_vlang', l);
+  function scoreQuery(text) {
+    const q = parseQuery(text);
+    return q.types.length * 3 + q.colors.length * 2 + q.cats.length * 2 + (q.maxPrice ? 2 : 0) - q.text.length * 0.5;
+  }
+  // Listen once. opts: { lang, onInterim(text), onFinal(text, alternatives), onError(code), onEnd() }
+  function listen(opts) {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { opts.onError && opts.onError('unsupported'); return null; }
+    const rec = new SR();
+    rec.lang = opts.lang || voiceLang(); rec.interimResults = true; rec.maxAlternatives = 4; rec.continuous = false;
+    let alts = [], interim = '', done = false;
+    rec.onresult = e => {
+      let txt = '';
+      for (let i = 0; i < e.results.length; i++) {
+        const r = e.results[i]; txt += r[0].transcript;
+        if (r.isFinal) { alts = []; for (let k = 0; k < r.length; k++) alts.push(r[k].transcript.trim()); }
+      }
+      interim = txt.trim(); opts.onInterim && opts.onInterim(interim);
+    };
+    rec.onerror = e => { done = true; opts.onError && opts.onError(e.error); };
+    rec.onend = () => {
+      if (!done) {
+        const list = alts.length ? alts : (interim ? [interim] : []);
+        if (list.length) {
+          // pick the alternative the shop understands best (first one wins ties)
+          let best = list[0], bs = opts.score ? -1e9 : 0;
+          if (opts.score) list.forEach(a => { const sc = opts.score(a); if (sc > bs) { bs = sc; best = a; } });
+          opts.onFinal && opts.onFinal(best, list);
+        } else opts.onError && opts.onError('no-speech');
+      }
+      opts.onEnd && opts.onEnd();
+    };
+    try { rec.start(); } catch (err) { opts.onError && opts.onError('start'); return null; }
+    return rec;
+  }
+  function voiceErrorText(code) {
+    return {
+      'unsupported': ['इस ब्राउज़र में बोलकर खोज नहीं चलती', 'Voice search needs Chrome. In WhatsApp, tap ⋮ → Open in Chrome'],
+      'not-allowed': ['माइक की इजाज़त नहीं मिली', 'Allow the microphone: tap the lock icon near the address → Microphone → Allow'],
+      'service-not-allowed': ['माइक की इजाज़त नहीं मिली', 'Allow the microphone in browser settings'],
+      'no-speech': ['आवाज़ नहीं आई — फिर से बोलें', 'Didn’t hear anything — tap the mic and speak again'],
+      'audio-capture': ['माइक नहीं मिला', 'No microphone found on this device'],
+      'network': ['इंटरनेट धीमा है — फिर से कोशिश करें', 'Voice needs internet — check the connection and try again'],
+      'language-not-supported': ['यह भाषा इस फ़ोन में नहीं है', 'This language isn’t available here — try the other one']
+    }[code] || ['बोलकर खोज अभी नहीं चली', 'Voice didn’t work — please type instead'];
+  }
+
   window.PD = {
+    VOICE_LANGS, voiceSupported, voiceLang, setVoiceLang, listen, voiceErrorText, scoreQuery,
     CATS, TYPES, COLLS, COLORS, SIZE_GROUPS, FESTIVALS, GOES_WITH, DEFAULT_SETTINGS,
     catById, typeById, colorById, collById, ic, pic, placeholderPic, fmt, esc, salePrice, priceInfo, uid,
     norm, parseQuery, runSearch, goesWith, compressPhoto, analyseImage, photoMatch, nearestColor, hexToRgb, fileToDataURL, loadImage,

@@ -152,7 +152,12 @@
     if (pq.maxPrice) chips.push({ k: 'max', v: pq.maxPrice, hi: fmt(pq.maxPrice) + ' तक', en: 'Under ' + fmt(pq.maxPrice) });
     const said = S.voice && S.voice.q === q ? S.voice : null;
     let html = backHead('खोज', 'Search') + searchBar(q);
-    if (said) html += '<div class="note terra"><span class="round mic" style="width:2.5rem;height:2.5rem">' + ic('mic', 20) + '</span><div><span class="en">आपने कहा · You said</span><span class="hi" style="font-size:1.2rem;margin-top:.1rem">“' + esc(said.q) + '”</span></div></div>';
+    if (said) {
+      const L = PD.VOICE_LANGS.find(v => v.id === said.lang) || PD.VOICE_LANGS[0];
+      const others = list.length ? [] : (said.alts || []).filter(a => a && a !== said.q).slice(0, 2);
+      html += '<div class="note terra"><button class="round mic" style="width:2.75rem;height:2.75rem" data-act="voice" aria-label="फिर से बोलें, speak again">' + ic('mic', 20) + '</button><div style="flex:1"><span class="en">आपने कहा · You said (' + L.en + ')</span><span class="hi" style="font-size:1.2rem;margin-top:.1rem">“' + esc(said.q) + '”</span>' +
+        (others.length ? '<span class="en" style="margin-top:.35rem">यह तो नहीं कहा? · Did you mean:</span><div class="row" style="flex-wrap:wrap;margin-top:.25rem">' + others.map(o => '<a class="btn" style="min-height:2.75rem;padding:0 .7rem;font-size:.9rem" href="#/s/' + encodeURIComponent(o) + '">' + esc(o) + '</a>').join('') + '</div>' : '') + '</div></div>';
+    }
     if (chips.length) html += '<div class="chips" style="flex-wrap:wrap">' + chips.map(c => '<button class="qchip" data-act="dropq" data-k="' + c.k + '" data-v="' + esc(c.v) + '">' + (c.sw ? '<span style="width:1rem;height:1rem;border-radius:.5rem;background:' + c.sw + ';border:1px solid var(--line)"></span>' : '') + '<span style="text-align:left">' + bi(c.hi, c.en, '.88rem') + '</span>' + ic('x', 18, 'role="img" aria-label="हटाएँ, remove"') + '</button>').join('') + '</div>';
     if (r.relaxed) html += '<div class="note warn">' + ic('info', 22) + '<div>' + bi(r.relaxed === 'color' ? 'इस रंग में नहीं मिला — बाकी रंग दिखा रहे हैं' : 'इस दाम में नहीं मिला — थोड़े महँगे दिखा रहे हैं', r.relaxed === 'color' ? 'Not in that colour — showing other colours' : 'Nothing at that price — showing a little above it', '.95rem') + '</div></div>';
     if (list.length) {
@@ -354,31 +359,46 @@
     go('#/done');
   }
 
-  /* voice search (Hindi recogniser understands most Bhojpuri words) */
-  let rec = null;
-  function startVoice() {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) { toast('err', 'इस फ़ोन में बोलकर खोज नहीं चलती', 'Voice search is not supported here — please type, or use Chrome', null, 5000); return; }
-    const sc = document.createElement('div'); sc.className = 'scrim';
-    sc.innerHTML = '<div class="sheet" role="dialog" aria-label="बोलकर खोजें"><span class="handle"></span><div class="listen"><span class="pulse">' + ic('mic', 44) + '</span>' +
-      bi('बोलिए… जैसे “नीला कमीज देखाईं, पाँच सौ के भीतर”', 'Speak now — Hindi or Bhojpuri', '1.15rem') +
-      '<span class="muted" id="heard" style="min-height:1.4rem"></span><button class="btn" data-act="stopvoice">' + bi('रोकें', 'Cancel', '.95rem') + '</button></div></div>';
-    document.body.appendChild(sc);
-    rec = new SR(); rec.lang = 'hi-IN'; rec.interimResults = true; rec.maxAlternatives = 1;
-    let final = '';
-    rec.onresult = e => { let txt = ''; for (let i = 0; i < e.results.length; i++) { txt += e.results[i][0].transcript; if (e.results[i].isFinal) final = txt; } const h = $('#heard'); if (h) h.textContent = txt; };
-    rec.onerror = e => {
-      sc.remove();
-      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') toast('err', 'माइक की इजाज़त नहीं मिली', 'Please allow the microphone and try again', null, 5000);
-      else if (e.error === 'no-speech') toast('err', 'आवाज़ नहीं आई, फिर से बोलें', 'Didn’t hear anything — try again');
-      else if (e.error !== 'aborted') toast('err', 'बोलकर खोज अभी नहीं चली', 'Voice search failed — please type instead');
-    };
-    rec.onend = () => {
-      sc.remove();
-      const h = $('#heard'); const q = (final || (h && h.textContent) || '').trim();
-      if (q) { S.voice = { q }; S.show = 24; go('#/s/' + encodeURIComponent(q)); }
-    };
-    try { rec.start(); } catch (e) { sc.remove(); toast('err', 'बोलकर खोज अभी नहीं चली', 'Voice search failed'); }
+  /* voice search: Hindi / Bhojpuri (hi-IN) or English (en-IN) */
+  let rec = null, voiceSheet = null;
+  function closeVoice() { if (rec) { try { rec.abort(); } catch (e) { /* ignore */ } rec = null; } if (voiceSheet) { voiceSheet.remove(); voiceSheet = null; } }
+  function voiceSheetHtml(lang, state, heard) {
+    const L = PD.VOICE_LANGS.find(v => v.id === lang);
+    const listening = state === 'listening';
+    return '<div class="sheet" role="dialog" aria-modal="true" aria-label="बोलकर खोजें · Voice search"><span class="handle"></span>' +
+      '<div class="seg" role="group" aria-label="भाषा · Language" style="display:grid;grid-template-columns:1fr 1fr;border-radius:1rem;overflow:hidden;border:1.5px solid var(--line)">' +
+      PD.VOICE_LANGS.map(v => '<button data-act="vlang" data-v="' + v.id + '" aria-pressed="' + (v.id === lang) + '" style="min-height:3.5rem;border:0;background:' + (v.id === lang ? 'var(--sage)' : 'var(--sf)') + ';color:' + (v.id === lang ? 'var(--on-sage)' : 'var(--ink)') + ';line-height:1.15"><span style="display:block;font-weight:700;font-size:1rem">' + v.hi + '</span><span style="font-size:.75rem">' + v.en + '</span></button>').join('') + '</div>' +
+      '<div class="listen">' +
+      (listening ? '<span class="pulse">' + ic('mic', 44) + '</span>' : '<button class="round" data-act="vstart" style="width:6rem;height:6rem;border-radius:3rem;background:var(--terra);color:var(--on-terra)" aria-label="फिर से बोलें, speak again">' + ic('mic', 44) + '</button>') +
+      (listening ? bi(lang === 'en-IN' ? 'Speak now…' : 'बोलिए…', lang === 'en-IN' ? 'बोलिए — अंग्रेज़ी में' : 'Speak now — Hindi or Bhojpuri', '1.25rem') : bi('माइक दबाकर बोलें', 'Tap the mic and speak', '1.15rem')) +
+      '<span class="muted" style="font-size:.9rem">जैसे · e.g. “' + esc(L.example) + '”</span>' +
+      '<span id="heard" style="min-height:1.6rem;font-weight:600;font-size:1.1rem">' + esc(heard || '') + '</span>' +
+      '<button class="btn" data-act="stopvoice">' + bi('बंद करें', 'Close', '.95rem') + '</button></div></div>';
+  }
+  function startVoice(lang) {
+    lang = lang || PD.voiceLang();
+    if (!PD.voiceSupported()) { const t = PD.voiceErrorText('unsupported'); toast('err', t[0], t[1], null, 6000); return; }
+    if (rec) { try { rec.abort(); } catch (e) { /* ignore */ } rec = null; }
+    if (!voiceSheet) { voiceSheet = document.createElement('div'); voiceSheet.className = 'scrim'; voiceSheet.addEventListener('click', e => { if (e.target === voiceSheet) closeVoice(); }); document.body.appendChild(voiceSheet); }
+    voiceSheet.innerHTML = voiceSheetHtml(lang, 'listening');
+    const myRec = PD.listen({
+      lang, score: PD.scoreQuery,
+      onInterim: txt => { const h = $('#heard'); if (h) h.textContent = txt; },
+      onFinal: (q, alts) => {
+        if (rec !== myRec) return;
+        rec = null; closeVoice();
+        S.voice = { q, lang, alts }; S.show = 24; go('#/s/' + encodeURIComponent(q));
+      },
+      onError: code => {
+        if (rec !== myRec || code === 'aborted') return;
+        rec = null;
+        const t = PD.voiceErrorText(code);
+        if (code === 'no-speech' && voiceSheet) { voiceSheet.innerHTML = voiceSheetHtml(lang, 'idle'); const h = $('#heard'); if (h) { h.textContent = t[0]; h.style.color = 'var(--err)'; } return; }
+        closeVoice(); toast('err', t[0], t[1], null, 6000);
+      }
+    });
+    rec = myRec;
+    if (!myRec) closeVoice();
   }
 
   async function onPhoto(file) {
@@ -416,7 +436,9 @@
         break;
       }
       case 'voice': startVoice(); break;
-      case 'stopvoice': if (rec) rec.abort(); document.querySelector('.scrim') && document.querySelector('.scrim').remove(); break;
+      case 'vlang': PD.setVoiceLang(b.dataset.v); startVoice(b.dataset.v); break;
+      case 'vstart': startVoice(); break;
+      case 'stopvoice': closeVoice(); break;
       case 'photo': { const inp = $('#photoInput'); inp.value = ''; inp.click(); break; }
       case 'dropq': {
         const pq = PD.parseQuery(decodeURIComponent(location.hash.slice(4)));
@@ -463,7 +485,8 @@
     else if (parts[0] === 'done') viewDone();
     else viewHome();
   }
-  window.addEventListener('hashchange', route);
+  window.addEventListener('hashchange', () => { closeVoice(); route(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && voiceSheet) closeVoice(); });
   window.addEventListener('storage', e => { if (e.key === 'pd_cart') { S.cart = ls.get('pd_cart', []); route(); } });
   load().then(route);
 })();

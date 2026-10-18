@@ -33,7 +33,11 @@ This is fine for a few hundred items with photos. For thousands of photos, the n
 
 ## Voice and photo search
 
-- Voice search uses the phone's built-in Hindi speech recognition (Chrome on Android). It understands most Bhojpuri words;
+- Voice search has two languages, chosen in the voice sheet and remembered: **Hindi / Bhojpuri** (hi-IN) and **English** (en-IN, also good for Hinglish).
+  It uses the phone's built-in speech recognition (Chrome on Android; not inside WhatsApp's in-app browser), keeps the recogniser's best guesses and picks the one the shop understands best.
+  English number words ("five hundred", "one thousand five hundred") and English words written in Hindi script ("ब्लू शर्ट अंडर 500") are understood.
+  The owner panel has a mic next to the item name, in either language.
+- The Hindi recogniser understands most Bhojpuri words;
   the search then maps words such as कमीज/शर्टवा, करिया/उज्जर/हरियर, लइकी, मेहरारू, “पाँच सौ के भीतर” to item types, colours, categories and price limits.
 - Photo search compares the colour (and, for items the owner photographed, the picture itself) to find the same or similar items.
 

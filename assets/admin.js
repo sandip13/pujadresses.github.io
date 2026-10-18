@@ -243,7 +243,10 @@
       '<button class="gal" data-act="gal">' + ic('gallery', 44, 'style="stroke-width:1.8"') + '<span class="hi" style="font-size:1.2rem;color:var(--ink)">गैलरी</span><span class="en">Gallery · many at once</span></button></div>' +
       (d.photos.length ? '<div class="thumbs">' + d.photos.map((p, i) => '<div class="t"><img alt="फ़ोटो ' + (i + 1) + '" src="' + p + '">' + (i === 0 ? '<span class="main">मुख्य · Main</span>' : '<button class="rm" style="left:.25rem;right:auto;top:auto;bottom:.25rem" data-act="mainph" data-i="' + i + '">मुख्य बनाएँ</button>') + '<button class="rm" data-act="rmph" data-i="' + i + '" aria-label="फ़ोटो हटाएँ, remove photo">× हटाएँ</button></div>').join('') + '</div>' : '') + '</section>';
     // name
-    html += '<section class="osec"><label for="f_name" class="otitle">' + bi('2. नाम', 'Item name', '1.08rem') + '</label><input id="f_name" class="fld' + (e.name ? ' bad' : '') + '" data-f="name" value="' + esc(d.name) + '" placeholder="जैसे: नीली सूती कमीज़" style="font-size:1.15rem">' +
+    html += '<section class="osec"><label for="f_name" class="otitle">' + bi('2. नाम', 'Item name', '1.08rem') + '</label><div class="row" style="gap:.5rem"><input id="f_name" class="fld' + (e.name ? ' bad' : '') + '" data-f="name" value="' + esc(d.name) + '" placeholder="जैसे: नीली सूती कमीज़" style="font-size:1.15rem;flex:1;min-width:0">' +
+      '<button type="button" class="round mic" id="nmic" data-act="nmic" style="width:3.5rem;height:3.5rem" aria-label="बोलकर नाम लिखें, speak the name">' + ic('mic', 24) + '</button></div>' +
+      '<div class="row" style="gap:.4rem;margin-top:.4rem;flex-wrap:wrap"><span class="en" style="font-size:.8rem">बोलने की भाषा · Voice language:</span>' + PD.VOICE_LANGS.map(v => '<button type="button" class="z" style="min-height:2.6rem;font-size:.85rem;padding:0 .6rem" data-act="nlang" data-v="' + v.id + '" aria-pressed="' + (PD.voiceLang() === v.id) + '">' + v.hi + ' · ' + v.en.split(' /')[0] + '</button>').join('') + '</div>' +
+      '<span id="nheard" class="en" style="min-height:1.1rem;margin-top:.2rem;font-size:.85rem"></span>' +
       (e.name ? '<span class="ferr">' + e.name[0] + '<span class="en">' + e.name[1] + '</span></span>' : '') +
       '<label for="f_nameEn" class="lab" style="margin-top:.6rem"><span class="en" style="font-size:.85rem">अंग्रेज़ी नाम (चाहें तो) · English name (optional)</span></label><input id="f_nameEn" class="fld" style="height:3rem;font-size:1rem" data-f="nameEn" value="' + esc(d.nameEn) + '"></section>';
     // price + keypad
@@ -589,6 +592,20 @@
       case 'ftypenew': A.typeNew = true; d.type = ''; keepScroll(viewForm); const ti = document.querySelector('[data-f="typeName"]'); if (ti) ti.focus(); break;
       case 'fsize': { const s = b.dataset.v; const i = d.sizes.indexOf(s); if (i >= 0) d.sizes.splice(i, 1); else d.sizes.push(s); b.setAttribute('aria-pressed', i < 0); break; }
       case 'ftog': d[b.dataset.k] = !d[b.dataset.k]; b.setAttribute('aria-checked', d[b.dataset.k]); break;
+      case 'nlang': PD.setVoiceLang(b.dataset.v); document.querySelectorAll('[data-act="nlang"]').forEach(x => x.setAttribute('aria-pressed', x === b)); break;
+      case 'nmic': {
+        if (A.rec) { try { A.rec.stop(); } catch (err) { /* ignore */ } break; }
+        const inp = $('#f_name'); const hint = $('#nheard'); const btn = $('#nmic');
+        const done = () => { A.rec = null; if (btn) btn.style.boxShadow = ''; };
+        A.rec = PD.listen({
+          lang: PD.voiceLang(),
+          onInterim: t => { if (inp) inp.value = t; if (hint) { hint.textContent = 'सुन रहे हैं… · Listening…'; hint.style.color = ''; } },
+          onFinal: t => { A.draft.name = t.charAt(0).toUpperCase() + t.slice(1); if (inp) inp.value = A.draft.name; if (hint) hint.textContent = 'नाम लिख दिया ✓ — ठीक न हो तो बदल दें · Check and edit if needed'; done(); },
+          onError: code => { const m = PD.voiceErrorText(code); if (inp) inp.value = A.draft.name; if (hint) { hint.textContent = m[0] + ' · ' + m[1]; hint.style.color = 'var(--err)'; } done(); }
+        });
+        if (A.rec && btn) { btn.style.boxShadow = '0 0 0 .4rem rgba(180,86,47,.3)'; if (hint) hint.textContent = 'बोलिए… · Speak now…'; }
+        break;
+      }
       case 'save': await saveDraft(false); break;
       case 'savesim': await saveDraft(true); break;
       case 'delask': A.confirmDel = true; keepScroll(viewForm); break;
