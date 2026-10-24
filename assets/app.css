@@ -213,3 +213,15 @@ textarea.fld{height:auto;padding:.75rem .9rem;resize:vertical}
 .btn:has(> .hi){flex-direction:column;gap:0;text-align:center}
 .btn:has(> .hi) > .ic{margin-bottom:.15rem}
 .btn.danger-fill .en,.btn.primary .en{color:inherit;opacity:.92}
+/* orders: customer pay card + tracking timeline */
+.ocard-c{margin:.9rem 1rem 0;padding:1rem;background:var(--sf);border:1px solid var(--line);border-radius:1.25rem;display:flex;flex-direction:column;gap:.7rem}
+.tline{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.tline li{display:flex;gap:.75rem;align-items:flex-start;position:relative;padding-bottom:1rem}
+.tline li:not(:last-child)::before{content:"";position:absolute;left:.8rem;top:1.7rem;bottom:.1rem;width:2px;background:var(--line)}
+.tline li.done:not(:last-child)::before{background:var(--sage)}
+.tline .dot{width:1.65rem;height:1.65rem;border-radius:.85rem;border:2px solid var(--line);background:var(--sf);display:flex;align-items:center;justify-content:center;flex:none;color:var(--bg)}
+.tline li.done .dot{background:var(--sage);border-color:var(--sage)}
+.tline li.now .dot{background:var(--terra);border-color:var(--terra);box-shadow:0 0 0 .3rem var(--terra-t)}
+.tline li.cancel .dot{background:var(--err);border-color:var(--err)}
+.tline li.todo .hi{color:var(--ink2);font-weight:500}
+.tline li.now .hi{font-weight:700}

@@ -100,7 +100,7 @@
       (st.phone ? '<a href="tel:' + esc(st.phone) + '">कॉल करें · ' + esc(st.phone) + '</a>' : '') +
       '<div class="row" style="flex-wrap:wrap;margin-top:.25rem"><button class="pill-btn" data-act="theme">' + ic('moon', 20) + '<span>' + bi(dark ? 'दिन वाला रंग' : 'रात वाला रंग', dark ? 'Light mode' : 'Dark mode', '.85rem') + '</span></button></div>' +
       (st.instagram ? '<a class="small-link" target="_blank" rel="noopener" href="' + esc(st.instagram) + '">Instagram पर देखें / Instagram</a>' : '') +
-      '<a class="small-link" href="admin.html">दुकान वाले के लिए · Owner login</a></footer>';
+      '<a class="small-link" href="#/orders">मेरे ऑर्डर · My orders</a><a class="small-link" href="admin.html">दुकान वाले के लिए · Owner login</a></footer>';
   }
   function bbar(active) {
     const count = S.cart.reduce((a, c) => a + c.qty, 0);
@@ -124,7 +124,7 @@
     if (S.coll === 'new') list = list.filter(i => i.isNew); else if (S.coll) list = list.filter(i => (i.colls || []).indexOf(S.coll) >= 0);
     list = applyFilters(list);
     const c = S.coll && collById(S.coll);
-    app.innerHTML = header() + promises() + banner() + searchBar() + tiles() + collChips() + filterChips() +
+    app.innerHTML = header() + promises() + banner() + searchBar() + '<div class="pad" style="padding-top:.6rem"><a class="btn block" style="justify-content:flex-start;border:1.5px solid var(--sage)" href="#/order">' + ic('list', 24, 'style="color:var(--sage-d)"') + '<span style="flex:1"><span class="hi" style="font-size:1rem">ऑर्डर फ़ॉर्म — सामान चुनें, पता लिखें</span><span class="en">Quick order form · order on WhatsApp</span></span>' + ic('right', 20) + '</a></div>' + tiles() + collChips() + filterChips() +
       (c ? '<div class="sec-t"><div>' + bi(c.hi + ' · ' + list.length, c.en) + '</div><button class="btn" style="min-height:2.75rem" data-act="coll" data-id="' + c.id + '">' + bi('सब दिखाएँ', 'Show all', '.85rem') + '</button></div>' : '') +
       '<div id="gridwrap">' + grid(list) + '</div>' + footer();
     bbar('home');
@@ -216,46 +216,94 @@
     const fee = pickup || !sub ? 0 : (sub >= (+S.settings.freeAbove || Infinity) ? 0 : (+S.settings.deliveryFee || 0));
     return { lines, sub, fee, total: sub + fee, pickup };
   }
-  function viewCart() {
-    const t = cartTotals(); const f = ls.get('pd_customer', {});
-    let html = backHead('आपका थैला', t.lines.length ? t.lines.reduce((a, x) => a + x.c.qty, 0) + ' चीज़ें · items' : 'Your cart');
-    if (!t.lines.length) {
-      app.innerHTML = html + '<div class="empty">' + bi('थैला खाली है', 'Your cart is empty') + '<a class="btn primary" style="margin-top:.9rem" href="#/">' + bi('कपड़े देखें', 'Browse clothes') + '</a></div>' + footer();
-      bbar('cart'); return;
-    }
-    html += '<div style="display:flex;flex-direction:column;gap:.6rem;padding:0 1rem">' + t.lines.map((x, i) => {
+  function lineRows(t) {
+    return '<div style="display:flex;flex-direction:column;gap:.6rem;padding:0 1rem">' + t.lines.map((x, i) => {
       const p = PD.salePrice(x.it, S.settings);
       return '<div class="citem"><img alt="" src="' + pic(x.it) + '"><div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:.35rem">' +
-        '<div><span class="hi" style="font-size:1rem">' + esc(x.it.name) + '</span><span class="en">' + esc(x.it.nameEn || '') + (x.c.size ? ' · साइज़ / Size ' + esc(x.c.size) : '') + '</span></div>' +
+        '<div><span class="hi" style="font-size:1rem">' + esc(x.it.name) + '</span><span class="en">' + esc(x.it.nameEn || '') + (x.c.size ? ' · साइज़ / Size ' + esc(x.c.size === 'Free' ? 'फ़्री' : x.c.size) : '') + '</span></div>' +
         '<div class="row" style="justify-content:space-between"><span style="font-family:\'Baloo 2\';font-weight:700;font-size:1.25rem">' + fmt(p * x.c.qty) + '</span>' +
         '<div class="stepper"><button data-act="qty" data-i="' + i + '" data-d="-1" aria-label="एक कम, decrease">−</button><span>' + x.c.qty + '</span><button data-act="qty" data-i="' + i + '" data-d="1" aria-label="एक और, increase">+</button></div></div></div></div>';
     }).join('') + '</div>';
+  }
+  function detailsForm(t, f) {
     const freeAbove = +S.settings.freeAbove || 0;
-    html += '<div class="summary"><div class="r"><span>' + bi('सामान', 'Items', '.95rem') + '</span><b>' + fmt(t.sub) + '</b></div>' +
-      '<div class="r"><span>' + bi('डिलीवरी', t.pickup ? 'Pick up at shop' : (freeAbove ? 'Free above ' + fmt(freeAbove) : 'Delivery'), '.95rem') + '</span><b style="color:' + (t.fee ? 'inherit' : 'var(--sage-d)') + '">' + (t.fee ? fmt(t.fee) : 'मुफ़्त · ₹0') + '</b></div>' +
-      '<div style="height:1px;background:var(--line)"></div><div class="r"><span>' + bi('कुल', 'Total', '1.12rem') + '</span><span style="font-family:\'Baloo 2\';font-weight:800;font-size:1.6rem">' + fmt(t.total) + '</span></div></div>';
     const v = k => esc(f[k] || '');
-    html += '<form data-form="order" novalidate style="display:flex;flex-direction:column;gap:.9rem;padding:1.4rem 1rem 0">' +
+    return '<div class="summary"><div class="r"><span>' + bi('सामान', 'Items', '.95rem') + '</span><b>' + fmt(t.sub) + '</b></div>' +
+      '<div class="r"><span>' + bi('डिलीवरी', t.pickup ? 'Pick up at shop' : (freeAbove ? 'Free above ' + fmt(freeAbove) : 'Delivery'), '.95rem') + '</span><b style="color:' + (t.fee ? 'inherit' : 'var(--sage-d)') + '">' + (t.fee ? fmt(t.fee) : 'मुफ़्त · ₹0') + '</b></div>' +
+      '<div style="height:1px;background:var(--line)"></div><div class="r"><span>' + bi('कुल', 'Total', '1.12rem') + '</span><span style="font-family:\'Baloo 2\';font-weight:800;font-size:1.6rem">' + fmt(t.total) + '</span></div></div>' +
+      '<form data-form="order" novalidate style="display:flex;flex-direction:column;gap:.9rem;padding:1.4rem 1rem 0">' +
       '<fieldset style="border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:.6rem"><legend style="padding:0;margin-bottom:.6rem">' + bi('सामान कैसे लेंगे?', 'How will you get it?', '1.2rem') + '</legend>' +
       '<label class="radio"><input type="radio" name="delivery" value="home"' + (f.delivery !== 'pickup' ? ' checked' : '') + '><span style="flex:1">' + bi('घर पर डिलीवरी', 'Home delivery · same day in town', '1rem') + '</span>' + ic('truck', 24, 'style="color:var(--ink2)"') + '</label>' +
       '<label class="radio"><input type="radio" name="delivery" value="pickup"' + (f.delivery === 'pickup' ? ' checked' : '') + '><span style="flex:1">' + bi('दुकान से ले जाएँगे', 'Pick up at shop · try it on', '1rem') + '</span>' + ic('shop', 24, 'style="color:var(--ink2)"') + '</label></fieldset>' +
       '<h2 style="margin:.4rem 0 0">' + bi('आपकी जानकारी', 'Your details', '1.2rem') + '</h2>' +
       '<div><label for="o_name" class="lab">' + bi('नाम', 'Name', '.95rem') + '</label><input id="o_name" name="name" class="fld" autocomplete="name" value="' + v('name') + '"></div>' +
-      '<div><label for="o_mob" class="lab">' + bi('मोबाइल नंबर', 'Mobile number', '.95rem') + '</label><div class="prefix" id="mobbox"><span>+91</span><input id="o_mob" name="mobile" inputmode="numeric" maxlength="10" autocomplete="tel-national" value="' + v('mobile') + '"></div></div>' +
+      '<div><label for="o_mob" class="lab">' + bi('मोबाइल नंबर (WhatsApp वाला)', 'Mobile number (on WhatsApp)', '.95rem') + '</label><div class="prefix" id="mobbox"><span>+91</span><input id="o_mob" name="mobile" inputmode="numeric" maxlength="10" autocomplete="tel-national" value="' + v('mobile') + '"></div></div>' +
       '<div id="addrbox"><label for="o_addr" class="lab">' + bi('पूरा पता (गाँव / मोहल्ला, पास में क्या है)', 'Full address (village / area, nearby landmark)', '.95rem') + '</label><textarea id="o_addr" name="address" class="fld" rows="3" autocomplete="street-address">' + v('address') + '</textarea></div>' +
       '<div id="pinbox"><label for="o_pin" class="lab">' + bi('पिन कोड', 'PIN code', '.95rem') + '</label><input id="o_pin" name="pin" class="fld" style="max-width:12rem;letter-spacing:.15em" inputmode="numeric" maxlength="6" autocomplete="postal-code" value="' + v('pin') + '"></div>' +
       '<label class="check"><input type="checkbox" name="same" id="o_same"' + (f.same === false ? '' : ' checked') + '><span>' + bi('बिल का पता भी यही है', 'Billing address same as delivery', '.95rem') + '</span></label>' +
       '<div id="billbox"' + (f.same === false ? '' : ' hidden') + '><label for="o_bill" class="lab">' + bi('बिल का पता', 'Billing address', '.95rem') + '</label><textarea id="o_bill" name="bill" class="fld" rows="2">' + v('bill') + '</textarea></div>' +
+      '<div><label for="o_note" class="lab">' + bi('कुछ और बताना है? (चाहें तो)', 'Anything else? (optional) — colour, time to deliver…', '.95rem') + '</label><input id="o_note" name="note" class="fld" value="' + v('note') + '"></div>' +
       '<fieldset style="border:0;margin:.4rem 0 0;padding:0;display:flex;flex-direction:column;gap:.6rem"><legend style="padding:0;margin-bottom:.6rem">' + bi('पैसे कैसे देंगे?', 'How will you pay?', '1.2rem') + '</legend>' +
-      payRadio('upi', 'UPI से', 'UPI · PhonePe, Google Pay, Paytm', f.pay, '<span style="font-weight:800;font-size:.82rem;border:1.5px solid currentColor;border-radius:.4rem;padding:.1rem .4rem;color:var(--sage-d)">UPI</span>') +
+      payRadio('upi', 'UPI से (दुकान लिंक भेजेगी)', 'UPI · shop sends a payment link on WhatsApp', f.pay, '<span style="font-weight:800;font-size:.82rem;border:1.5px solid currentColor;border-radius:.4rem;padding:.1rem .4rem;color:var(--sage-d)">UPI</span>') +
       payRadio('cod', 'सामान मिलने पर नकद', 'Cash on delivery', f.pay, ic('cash', 24, 'style="color:var(--ink2)"')) +
       payRadio('shop', 'दुकान पर आकर दें', 'Pay at the shop', f.pay, ic('shop', 24, 'style="color:var(--ink2)"')) + '</fieldset>' +
       '<button type="submit" class="btn primary big block" style="margin-top:.5rem;box-shadow:0 6px 18px rgba(79,122,104,.28)">' + ic('chat', 28) + '<span>' + bi('WhatsApp पर ऑर्डर भेजें', 'Send order on WhatsApp · ' + fmt(t.total), '1.25rem') + '</span></button>' +
-      '<span class="en" style="text-align:center;font-size:.82rem">ऑर्डर सीधे दुकान के WhatsApp पर जाएगा · Goes straight to the shop</span></form>';
+      '<span class="en" style="text-align:center;font-size:.82rem">ऑर्डर नंबर के साथ सीधे दुकान के WhatsApp पर जाएगा · Goes to the shop with an order number</span></form>';
+  }
+  function viewCart() {
+    const t = cartTotals(); const f = ls.get('pd_customer', {});
+    let html = backHead('आपका थैला', t.lines.length ? t.lines.reduce((a, x) => a + x.c.qty, 0) + ' चीज़ें · items' : 'Your cart');
+    if (!t.lines.length) {
+      app.innerHTML = html + '<div class="empty">' + bi('थैला खाली है', 'Your cart is empty') +
+        '<div style="display:flex;flex-direction:column;gap:.6rem;margin-top:.9rem"><a class="btn primary" href="#/order">' + ic('list', 22) + '<span>' + bi('ऑर्डर फ़ॉर्म भरें', 'Fill the order form', '1rem') + '</span></a><a class="btn" href="#/">' + bi('कपड़े देखें', 'Browse clothes') + '</a></div></div>' + footer();
+      bbar('cart'); return;
+    }
+    html += lineRows(t) + '<div class="pad" style="padding-top:.6rem"><a class="btn block" href="#/order">' + ic('plus', 22) + '<span>' + bi('और सामान चुनें', 'Choose more items', '.95rem') + '</span></a></div>' + detailsForm(t, f);
     app.innerHTML = html + footer();
     syncDeliveryUI();
     bbar('cart');
   }
+  /* quick order form: choose products right here, then address */
+  S.of = { q: '', cat: 'all', size: {}, show: 20 };
+  function pickerList() {
+    const q = PD.norm(S.of.q);
+    let list = visible().filter(i => i.inStock && (S.of.cat === 'all' || i.cat === S.of.cat));
+    if (q) {
+      const pq = PD.parseQuery(S.of.q); const r = PD.runSearch(list, pq, S.settings);
+      list = r.items.length ? r.items : list.filter(i => PD.norm(i.name + ' ' + (i.nameEn || '')).indexOf(q) >= 0);
+    } else list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    if (!list.length) return '<div class="empty">' + bi('कुछ नहीं मिला', 'Nothing found — try another word', '1rem') + '</div>';
+    return list.slice(0, S.of.show).map(it => {
+      const p = PD.priceInfo(it, S.settings); const sizes = it.sizes || [];
+      const picked = S.of.size[it.id] || (sizes.length === 1 ? sizes[0] : '');
+      const inCart = S.cart.filter(c => c.id === it.id).reduce((a, c) => a + c.qty, 0);
+      return '<div class="citem" style="flex-direction:column;gap:.55rem"><div class="row" style="gap:.75rem;align-items:flex-start"><img alt="" loading="lazy" src="' + pic(it) + '" style="width:4.25rem;height:5rem">' +
+        '<div style="flex:1;min-width:0"><span class="hi" style="font-size:1rem">' + esc(it.name) + '</span><span class="en">' + esc(it.nameEn || '') + '</span>' +
+        '<div class="price" style="margin-top:.2rem"><span class="now" style="font-size:1.15rem">' + fmt(p.now) + '</span>' + (p.mrp ? '<span class="mrp">' + fmt(p.mrp) + '</span>' : '') + '</div></div>' +
+        (inCart ? '<span style="background:var(--sage-t);color:var(--sage-d);font-weight:700;font-size:.8rem;padding:.2rem .5rem;border-radius:.5rem;white-space:nowrap">थैले में ' + inCart + '</span>' : '') + '</div>' +
+        (sizes.length > 1 ? '<div class="row" style="flex-wrap:wrap;gap:.4rem" role="group" aria-label="साइज़ · size">' + sizes.map(s => '<button class="size" style="min-width:3rem;min-height:2.9rem;padding:0 .6rem" data-act="ofsize" data-id="' + it.id + '" data-v="' + esc(s) + '" aria-pressed="' + (picked === s) + '">' + esc(s === 'Free' ? 'फ़्री' : s) + '</button>').join('') + '</div>' : '') +
+        '<button class="btn primary block" style="min-height:3rem" data-act="ofadd" data-id="' + it.id + '">' + ic('plus', 22) + '<span>' + bi(inCart ? 'एक और जोड़ें' : 'ऑर्डर में जोड़ें', inCart ? 'Add one more' : 'Add to order', '.98rem') + '</span></button></div>';
+    }).join('');
+  }
+  function viewOrder() {
+    const t = cartTotals(); const f = ls.get('pd_customer', {});
+    let html = backHead('ऑर्डर फ़ॉर्म', 'Order form · choose items, then your address') +
+      '<section><div class="pad" style="padding-top:.25rem">' + bi('1. सामान चुनें', 'Choose what you want', '1.2rem') + '</div>' +
+      '<form class="search" data-form="ofsearch" role="search"><span class="muted" aria-hidden="true">' + ic('search', 22) + '</span><label for="ofq" class="sr">सामान खोजें</label>' +
+      '<input id="ofq" type="search" autocomplete="off" value="' + esc(S.of.q) + '" placeholder="जैसे: नीली कमीज़ · e.g. kurti"><button type="button" class="round mic" data-act="ofvoice" aria-label="बोलकर खोजें, voice">' + ic('mic', 22) + '</button></form>' +
+      '<div class="chips" role="group" aria-label="कैटेगरी"><button class="fchip" data-act="ofcat" data-v="all" aria-pressed="' + (S.of.cat === 'all') + '">' + bi('सब', 'All') + '</button>' +
+      CATS.map(c => '<button class="fchip" data-act="ofcat" data-v="' + c.id + '" aria-pressed="' + (S.of.cat === c.id) + '">' + bi(c.hi, c.en.split(' ·')[0]) + '</button>').join('') + '</div>' +
+      '<div id="oflist" style="display:flex;flex-direction:column;gap:.6rem;padding:.75rem 1rem 0;max-height:34rem;overflow:auto">' + pickerList() + '</div></section>';
+    html += '<section style="margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--line)"><div class="pad" style="padding-bottom:.6rem">' + bi('2. आपका ऑर्डर', t.lines.length ? 'Your order' : 'Your order — nothing chosen yet', '1.2rem') + '</div>' +
+      (t.lines.length ? lineRows(t) : '<div class="empty" style="margin-top:0">' + bi('ऊपर से सामान चुनें', 'Choose items above', '1rem') + '</div>') + '</section>';
+    if (t.lines.length) html += '<div class="pad" style="padding-top:1rem">' + bi('3. पता और भुगतान', 'Address and payment', '1.2rem') + '</div>' + detailsForm(t, f);
+    app.innerHTML = html + footer();
+    syncDeliveryUI();
+    bbar('');
+  }
+  const isOrderPage = () => (location.hash || '').indexOf('#/order') === 0;
+  function refreshOrder() { const y = window.scrollY; if (isOrderPage()) viewOrder(); else viewCart(); window.scrollTo(0, y); }
+
   function payRadio(v, hi, en, cur, right) {
     return '<label class="radio"><input type="radio" name="pay" value="' + v + '"' + ((cur || 'upi') === v ? ' checked' : '') + '><span style="flex:1">' + bi(hi, en, '1rem') + '</span>' + right + '</label>';
   }
@@ -285,19 +333,105 @@
     app.innerHTML = html + footer();
     bbar('');
   }
+  function myOrders() { return ls.get('pd_orders', {}); }
+  function saveMyOrder(o) { const all = myOrders(); const old = all[o.id]; if (!old || (o.h || []).length >= (old.h || []).length) { all[o.id] = Object.assign({}, old || {}, o); ls.set('pd_orders', all); } return all[o.id]; }
   function viewDone() {
     const o = S.lastOrder;
     if (!o) return go('#/');
+    const mine = myOrders()[o.id];
     let html = '<div style="padding:2rem 1rem 0;text-align:center;display:flex;flex-direction:column;align-items:center;gap:.75rem">' +
       '<span class="round" style="width:4.5rem;height:4.5rem;border-radius:2.25rem;background:var(--ok);color:var(--bg)">' + ic('check', 40, 'style="stroke-width:3"') + '</span>' +
       bi('ऑर्डर WhatsApp पर भेज दिया ✓', 'Order sent on WhatsApp', '1.5rem') +
-      '<p class="muted" style="margin:0">दुकान वाले जल्दी जवाब देंगे। WhatsApp नहीं खुला? नीचे बटन दबाएँ।<br><span class="en">The shop will reply soon. WhatsApp didn’t open? Tap below.</span></p>' +
-      '<a class="btn block" target="_blank" rel="noopener" href="' + o.link + '">' + ic('chat', 22) + bi('फिर से WhatsApp खोलें', 'Open WhatsApp again', '1rem') + '</a>';
-    if (o.pay === 'upi' && S.settings.razorpay) html += '<a class="btn primary block" target="_blank" rel="noopener" href="' + esc(S.settings.razorpay) + '">' + bi('अभी UPI से ' + fmt(o.total) + ' भेजें', 'Pay ' + fmt(o.total) + ' by UPI now', '1.1rem') + '</a>';
-    else if (o.pay === 'upi') html += '<div class="note sage" style="margin:0;text-align:left">' + ic('info', 22) + '<div>' + bi('दुकान वाले WhatsApp पर UPI नंबर भेजेंगे', 'The shop will send its UPI details on WhatsApp', '.95rem') + '</div></div>';
-    html += '<a class="btn" href="#/">' + bi('और ख़रीदारी करें', 'Continue shopping', '.95rem') + '</a></div>';
+      (o.id ? '<div style="padding:.6rem 1.1rem;border-radius:1rem;background:var(--sf2)"><span class="en">ऑर्डर नंबर · Order number</span><span style="font-family:\'Baloo 2\';font-weight:800;font-size:1.6rem;letter-spacing:.04em">' + esc(o.id) + '</span></div>' : '') +
+      '<p class="muted" style="margin:0">WhatsApp में भेजें (Send) दबाना न भूलें। WhatsApp नहीं खुला? नीचे बटन दबाएँ।<br><span class="en">Remember to press Send in WhatsApp. Didn’t open? Tap below.</span></p>' +
+      '<a class="btn block" target="_blank" rel="noopener" href="' + o.link + '">' + ic('chat', 22) + bi('फिर से WhatsApp खोलें', 'Open WhatsApp again', '1rem') + '</a></div>';
+    html += '<section class="note sage" style="flex-direction:column;gap:.5rem;margin-top:1.25rem">' + bi('आगे क्या होगा?', 'What happens next', '1.1rem') +
+      '<ol style="margin:0;padding-left:1.2rem;display:flex;flex-direction:column;gap:.35rem;font-size:.95rem">' +
+      '<li>दुकान WhatsApp पर ऑर्डर पक्का करेगी <span class="en" style="display:inline">· the shop confirms on WhatsApp</span></li>' +
+      (o.pay === 'upi' ? '<li>दुकान UPI भुगतान लिंक भेजेगी — उसे दबाकर पैसे भेजें <span class="en" style="display:inline">· tap the payment link the shop sends</span></li>' : '') +
+      '<li>हर कदम पर ट्रैकिंग लिंक आएगा — पैक, रास्ते में, पहुँच गया <span class="en" style="display:inline">· tracking link at every step</span></li></ol></section>';
+    html += '<div class="pad" style="display:flex;flex-direction:column;gap:.6rem;padding-top:1rem">' + (mine ? '<a class="btn primary block" href="#/mo/' + esc(o.id) + '">' + ic('truckgo', 22) + '<span>' + bi('ऑर्डर की स्थिति देखें', 'See order status', '1rem') + '</span></a>' : '') +
+      '<a class="btn block" href="#/">' + bi('और ख़रीदारी करें', 'Continue shopping', '.95rem') + '</a></div>';
     app.innerHTML = html + footer();
     bbar('');
+  }
+  let qrLib = null;
+  function loadQR() {
+    if (window.qrcode) return Promise.resolve(window.qrcode);
+    if (qrLib) return qrLib;
+    qrLib = new Promise((res, rej) => { const sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js'; sc.onload = () => res(window.qrcode); sc.onerror = rej; document.head.appendChild(sc); });
+    return qrLib;
+  }
+  function trackHtml(o) {
+    const flow = PD.orderFlow(o.py, o.d);
+    const cancelled = o.st === 'cancel';
+    const cur = flow.indexOf(o.st);
+    const when = st => { const e = (o.h || []).filter(x => x[0] === st).pop(); return e ? PD.timeAgo(e[1]) : ''; };
+    const amt = o.amt || o.tot;
+    const step = PD.ORDER_STEPS[o.st] || PD.ORDER_STEPS.new;
+    let html = backHead('ऑर्डर ' + esc(o.id), 'Order status · ' + (o.n ? esc(o.n) : ''));
+    html += '<div class="note ' + (cancelled ? 'warn' : o.st === 'done' || o.st === 'picked' ? 'sage' : 'terra') + '" role="status"><span class="round" style="width:2.75rem;height:2.75rem;background:' + (cancelled ? 'var(--warn)' : 'var(--sage)') + ';color:var(--bg)">' + ic(cancelled ? 'x' : o.st === 'out' ? 'truckgo' : 'check', 22, 'style="stroke-width:2.6"') + '</span>' +
+      '<div><span class="en">अभी की स्थिति · Current status</span>' + bi(step.hi, step.en, '1.3rem') + '</div></div>';
+    if (o.st === 'pay') {
+      html += '<section class="ocard-c"><div>' + bi('भुगतान करें', 'Pay now', '1.2rem') + '</div><span style="font-family:\'Baloo 2\';font-weight:800;font-size:2.2rem;line-height:1">' + fmt(amt) + '</span>' +
+        (o.pa ? '<a class="btn primary big block" href="' + esc(PD.upiLink(o.pa, o.pn || S.settings.shopNameEn, amt, 'Order ' + o.id)) + '">' + ic('rupee', 26) + '<span>' + bi('UPI ऐप से ' + fmt(amt) + ' भेजें', 'Pay with PhonePe / Google Pay / Paytm', '1.15rem') + '</span></a>' +
+          '<div class="row" style="justify-content:space-between;gap:.5rem;padding:.6rem .8rem;border-radius:.9rem;background:var(--sf2)"><span><span class="en">UPI ID</span><b style="font-size:1.05rem;word-break:break-all">' + esc(o.pa) + '</b></span><button class="btn" style="min-height:2.9rem" data-act="copyupi" data-v="' + esc(o.pa) + '">' + bi('कॉपी', 'Copy', '.85rem') + '</button></div>' +
+          '<div id="qr" style="display:flex;flex-direction:column;align-items:center;gap:.3rem"></div>' : '') +
+        (o.rz ? '<a class="btn ' + (o.pa ? '' : 'primary big ') + 'block" target="_blank" rel="noopener" href="' + esc(o.rz) + '">' + bi('भुगतान लिंक खोलें', 'Open payment link (card / UPI / net banking)', '1rem') + '</a>' : '') +
+        '<a class="btn block" target="_blank" rel="noopener" href="' + PD.waLink(S.settings.whatsapp, 'नमस्ते, मैंने ऑर्डर ' + o.id + ' का ' + fmt(amt) + ' भुगतान कर दिया है। स्क्रीनशॉट भेज रहा/रही हूँ।') + '">' + ic('chat', 22, 'style="color:var(--sage-d)"') + '<span>' + bi('भुगतान कर दिया? दुकान को बताएँ', 'Paid? Tell the shop (send the screenshot)', '.95rem') + '</span></a></section>';
+    }
+    if (o.st === 'out' && (o.dp || o.eta)) {
+      html += '<section class="ocard-c">' + bi('डिलीवरी', 'Delivery', '1.1rem') + (o.eta ? '<span style="font-weight:700;font-size:1.1rem">' + esc(o.eta) + ' तक पहुँचेगा</span>' : '') +
+        (o.dp && o.dp.n ? '<span>' + esc(o.dp.n) + ' सामान लेकर आ रहे हैं · is bringing your order</span>' : '') +
+        (o.dp && o.dp.m ? '<a class="btn primary block" href="tel:+91' + esc(o.dp.m) + '">' + ic('phone', 22) + '<span>' + bi('डिलीवरी वाले को कॉल करें', 'Call delivery person', '1rem') + '</span></a>' : '') +
+        (o.py === 'cod' ? '<span class="note warn" style="margin:0">' + fmt(amt) + ' नकद तैयार रखें · keep cash ready</span>' : '') + '</section>';
+    }
+    if (o.st === 'ready') html += '<section class="ocard-c">' + bi('दुकान से ले जाएँ', 'Collect from the shop', '1.1rem') + '<span>' + esc(S.settings.address || '[दुकान का पता]') + '</span><span class="en">' + esc(S.settings.hours || '') + '</span></section>';
+    // timeline
+    html += '<section class="pad" style="padding-top:1.1rem"><div style="margin-bottom:.6rem">' + bi('ऑर्डर कहाँ तक पहुँचा', 'Order progress', '1.1rem') + '</div><ol class="tline">' +
+      flow.map((st, i) => {
+        const S2 = PD.ORDER_STEPS[st]; const state = cancelled ? (when(st) ? 'done' : 'todo') : (i < cur ? 'done' : i === cur ? 'now' : 'todo');
+        return '<li class="' + state + '"><span class="dot">' + (state === 'todo' ? '' : ic('check', 14, 'style="stroke-width:3.2"')) + '</span><span>' + bi(S2.hi, S2.en, '1rem') + (when(st) ? '<span class="en">' + when(st) + '</span>' : '') + '</span></li>';
+      }).join('') + (cancelled ? '<li class="now cancel"><span class="dot">' + ic('x', 14, 'style="stroke-width:3.2"') + '</span><span>' + bi('रद्द हुआ', 'Cancelled', '1rem') + '<span class="en">' + when('cancel') + '</span></span></li>' : '') + '</ol></section>';
+    // items
+    html += '<section class="summary" style="margin-top:1.1rem">' + bi('सामान', 'Items', '1.05rem') +
+      (o.l || []).map(x => '<div class="r"><span>' + esc(x[0]) + (x[1] ? ' <span class="en" style="display:inline">(' + esc(x[1] === 'Free' ? 'फ़्री' : x[1]) + ')</span>' : '') + ' × ' + x[2] + '</span><b>' + (x[3] ? fmt(x[3] * x[2]) : '') + '</b></div>').join('') +
+      '<div style="height:1px;background:var(--line)"></div><div class="r"><span>' + bi('कुल', 'Total · ' + (PD.PAY_TXT[o.py] || {}).en, '1.05rem') + '</span><span style="font-family:\'Baloo 2\';font-weight:800;font-size:1.4rem">' + fmt(amt) + '</span></div></section>';
+    html += '<div class="pad" style="display:flex;flex-direction:column;gap:.6rem;padding-top:1rem"><a class="btn block" target="_blank" rel="noopener" href="' + PD.waLink(S.settings.whatsapp, 'नमस्ते, मेरे ऑर्डर ' + o.id + ' के बारे में पूछना है।') + '">' + ic('chat', 22, 'style="color:var(--sage-d)"') + '<span>' + bi('इस ऑर्डर के बारे में पूछें', 'Ask about this order on WhatsApp', '.95rem') + '</span></a>' +
+      '<a class="btn block" href="#/orders">' + ic('list', 22) + '<span>' + bi('मेरे सारे ऑर्डर', 'All my orders', '.95rem') + '</span></a></div>';
+    return html;
+  }
+  function afterTrack(o) {
+    const box = $('#qr');
+    if (box && o.pa) loadQR().then(qrcode => {
+      const qr = qrcode(0, 'M'); qr.addData(PD.upiLink(o.pa, o.pn || S.settings.shopNameEn, o.amt || o.tot, 'Order ' + o.id)); qr.make();
+      box.innerHTML = '<div style="background:#fff;padding:.6rem;border-radius:.9rem;width:11rem;height:11rem">' + qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true }) + '</div><span class="en">दूसरे फ़ोन से स्कैन करके भी भुगतान कर सकते हैं · or scan from another phone</span>';
+    }).catch(() => { /* QR is optional */ });
+  }
+  async function viewTrack(tok) {
+    app.innerHTML = backHead('ऑर्डर', 'Loading…');
+    let o;
+    try { o = await PD.decodeToken(tok); } catch (e) {
+      app.innerHTML = backHead('लिंक नहीं खुला', 'Link not readable') + '<div class="empty">' + bi('यह लिंक अधूरा लगता है', 'This link looks incomplete — open the full link from WhatsApp, or ask the shop', '1rem') + '</div>' + footer(); bbar(''); return;
+    }
+    o = saveMyOrder(o);
+    app.innerHTML = trackHtml(o) + footer(); afterTrack(o); bbar('');
+  }
+  function viewMyOrder(id) {
+    const o = myOrders()[id];
+    if (!o) return go('#/orders');
+    app.innerHTML = trackHtml(o) + footer(); afterTrack(o); bbar('');
+  }
+  function viewMyOrders() {
+    const list = Object.values(myOrders()).sort((a, b) => (b.t || 0) - (a.t || 0));
+    let html = backHead('मेरे ऑर्डर', 'My orders · on this phone');
+    if (!list.length) html += '<div class="empty">' + bi('अभी कोई ऑर्डर नहीं', 'No orders yet', '1rem') + '<a class="btn primary" style="margin-top:.9rem" href="#/order">' + bi('ऑर्डर फ़ॉर्म भरें', 'Fill the order form', '1rem') + '</a></div>';
+    else html += '<div style="display:flex;flex-direction:column;gap:.6rem;padding:0 1rem">' + list.map(o => {
+      const st = PD.ORDER_STEPS[o.st] || PD.ORDER_STEPS.new;
+      return '<a class="citem" style="text-decoration:none;color:var(--ink);align-items:center" href="#/mo/' + esc(o.id) + '"><div style="flex:1"><b style="font-size:1.05rem">' + esc(o.id) + '</b><span class="en">' + (o.t ? PD.timeAgo(o.t) : '') + ' · ' + (o.l || []).reduce((a, x) => a + x[2], 0) + ' items · ' + fmt(o.amt || o.tot) + '</span></div>' +
+        '<span style="padding:.25rem .6rem;border-radius:.6rem;background:' + (o.st === 'pay' ? 'var(--terra-t)' : 'var(--sage-t)') + ';font-weight:700;font-size:.85rem;text-align:center;line-height:1.15">' + st.hi + '<span style="display:block;font-size:.72rem;font-weight:500">' + st.en + '</span></span></a>';
+    }).join('') + '</div><p class="en pad" style="margin-top:.75rem">नई स्थिति दुकान के WhatsApp लिंक से आती है · Status updates arrive as links from the shop on WhatsApp</p>';
+    app.innerHTML = html + footer(); bbar('');
   }
 
   /* ---------- actions ---------- */
@@ -328,9 +462,9 @@
     toast('ok', 'थैले में डाल दिया ✓', it.name + (size ? ' · ' + (size === 'Free' ? 'फ़्री साइज़' : size) : ''), '<a class="btn" style="min-height:2.75rem;padding:0 .7rem" href="#/cart">थैला देखें</a>');
   }
 
-  function submitOrder(form) {
+  async function submitOrder(form) {
     const val = n => (form[n] && form[n].value || '').trim();
-    const data = { delivery: form.delivery.value, name: val('name'), mobile: val('mobile').replace(/\D/g, ''), address: val('address'), pin: val('pin').replace(/\D/g, ''), same: form.same.checked, bill: val('bill'), pay: form.pay.value };
+    const data = { delivery: form.delivery.value, name: val('name'), mobile: val('mobile').replace(/\D/g, ''), address: val('address'), pin: val('pin').replace(/\D/g, ''), same: form.same.checked, bill: val('bill'), note: val('note'), pay: form.pay.value };
     ls.set('pd_customer', data);
     // friendly validation
     form.querySelectorAll('.ferr').forEach(e => e.remove()); form.querySelectorAll('.bad').forEach(e => e.classList.remove('bad'));
@@ -345,17 +479,27 @@
     if (!data.same && !data.bill) bad(form.bill, 'बिल का पता लिखें', 'Please write the billing address');
     if (errs.length) { errs[0].scrollIntoView({ behavior: 'smooth', block: 'center' }); toast('err', 'थोड़ी जानकारी बाकी है', 'A few details are missing'); return; }
     const t = cartTotals();
-    const payTxt = { upi: 'UPI', cod: 'सामान मिलने पर नकद (COD)', shop: 'दुकान पर' }[data.pay];
+    if (!t.lines.length) { toast('err', 'पहले सामान चुनें', 'Choose at least one item first'); return; }
+    const id = PD.newOrderId(); const now = Date.now();
+    const order = { id, t: now, c: { n: data.name, m: data.mobile, a: data.address, p: data.pin, b: data.same ? '' : data.bill, x: data.note || '' }, d: data.delivery, py: data.pay,
+      l: t.lines.map(x => [x.it.id, x.c.size || '', x.c.qty, PD.salePrice(x.it, S.settings), x.it.name]), s: t.sub, f: t.fee, tot: t.total };
+    const payTxt = { upi: 'UPI (लिंक भेजें)', cod: 'सामान मिलने पर नकद (COD)', shop: 'दुकान पर' }[data.pay];
     const lines = t.lines.map((x, i) => (i + 1) + ') ' + x.it.name + (x.c.size ? ' (' + (x.c.size === 'Free' ? 'फ़्री साइज़' : x.c.size) + ')' : '') + ' × ' + x.c.qty + ' = ' + fmt(PD.salePrice(x.it, S.settings) * x.c.qty));
-    const msg = ['नया ऑर्डर — ' + S.settings.shopName, '', ...lines, '', 'सामान: ' + fmt(t.sub), 'डिलीवरी: ' + (t.pickup ? 'दुकान से लेंगे' : (t.fee ? fmt(t.fee) : 'मुफ़्त')), 'कुल: ' + fmt(t.total), '',
-      'नाम: ' + data.name, 'मोबाइल: +91 ' + data.mobile,
-      ...(data.delivery === 'home' ? ['पता: ' + data.address, 'PIN: ' + data.pin] : []),
-      'बिल का पता: ' + (data.same ? 'वही' : data.bill), 'भुगतान: ' + payTxt].join('\n');
-    const link = PD.waLink(S.settings.whatsapp, msg);
-    S.lastOrder = { link, total: t.total, pay: data.pay, at: Date.now() };
-    ls.set('pd_last_order', S.lastOrder);
+    // remember on this phone so the customer can follow it
+    saveMyOrder({ id, t: now, st: 'new', h: [['new', now]], n: data.name, l: order.l.map(x => [x[4], x[1], x[2], x[3]]), tot: t.total, py: data.pay, d: data.delivery });
     S.cart = []; saveCart();
-    window.open(link, '_blank', 'noopener');
+    const link = await PD.openWhatsAppLater(async () => {
+      const tok = await PD.encodeToken(order);
+      const ownerLink = new URL('admin.html#/in/' + tok, location.href).href;
+      const msg = ['नया ऑर्डर ' + id + ' — ' + S.settings.shopName, '', ...lines, '', 'सामान: ' + fmt(t.sub), 'डिलीवरी: ' + (t.pickup ? 'दुकान से लेंगे' : (t.fee ? fmt(t.fee) : 'मुफ़्त')), 'कुल: ' + fmt(t.total), '',
+        'नाम: ' + data.name, 'मोबाइल: +91 ' + data.mobile,
+        ...(data.delivery === 'home' ? ['पता: ' + data.address, 'PIN: ' + data.pin] : []),
+        'बिल का पता: ' + (data.same ? 'वही' : data.bill), 'भुगतान: ' + payTxt, ...(data.note ? ['नोट: ' + data.note] : []), '',
+        'दुकान के लिए — मालिक पैनल में खोलें:', ownerLink].join('\n');
+      return PD.waLink(S.settings.whatsapp, msg);
+    });
+    S.lastOrder = { id, link, total: t.total, pay: data.pay, at: now };
+    ls.set('pd_last_order', S.lastOrder);
     go('#/done');
   }
 
@@ -431,8 +575,8 @@
       case 'qty': {
         const i = +b.dataset.i; const line = cartTotals().lines[i]; if (!line) break;
         line.c.qty += +b.dataset.d;
-        if (line.c.qty <= 0) { const removed = line.c; S.cart = S.cart.filter(c => c !== removed); saveCart(); viewCart(); const el = toast('info', 'थैले से हटाया', removed ? (byId(removed.id) || {}).name : '', '<button class="btn" style="min-height:2.75rem;padding:0 .7rem">वापस लाएँ</button>', 6000); el.querySelector('button').onclick = () => { removed.qty = 1; S.cart.push(removed); saveCart(); el.remove(); viewCart(); }; }
-        else { saveCart(); viewCart(); }
+        if (line.c.qty <= 0) { const removed = line.c; S.cart = S.cart.filter(c => c !== removed); saveCart(); refreshOrder(); bbar(''); const el = toast('info', 'हटाया', removed ? (byId(removed.id) || {}).name : '', '<button class="btn" style="min-height:2.75rem;padding:0 .7rem">वापस लाएँ</button>', 6000); el.querySelector('button').onclick = () => { removed.qty = 1; S.cart.push(removed); saveCart(); el.remove(); refreshOrder(); }; }
+        else { saveCart(); refreshOrder(); }
         break;
       }
       case 'voice': startVoice(); break;
@@ -454,6 +598,22 @@
         break;
       }
       case 'live': ls.set('pd_preview', false); load().then(route); break;
+      case 'ofcat': S.of.cat = b.dataset.v; S.of.show = 20; document.querySelectorAll('[data-act="ofcat"]').forEach(x => x.setAttribute('aria-pressed', x === b)); $('#oflist').innerHTML = pickerList(); break;
+      case 'ofsize': S.of.size[b.dataset.id] = b.dataset.v; document.querySelectorAll('[data-act="ofsize"][data-id="' + b.dataset.id + '"]').forEach(x => x.setAttribute('aria-pressed', x === b)); break;
+      case 'ofadd': {
+        const it = byId(b.dataset.id); const sizes = it.sizes || []; const size = S.of.size[it.id] || (sizes.length === 1 ? sizes[0] : '');
+        if (sizes.length > 1 && !size) { toast('err', 'पहले साइज़ चुनें', it.name + ' — please choose a size'); break; }
+        const ex = S.cart.find(c => c.id === it.id && c.size === size); if (ex) ex.qty++; else S.cart.push({ id: it.id, size, qty: 1 });
+        saveCart(); refreshOrder(); toast('ok', 'ऑर्डर में जोड़ा ✓', it.name + (size ? ' · ' + (size === 'Free' ? 'फ़्री' : size) : '') + ' — नीचे पता भरें');
+        break;
+      }
+      case 'ofvoice': {
+        if (!PD.voiceSupported()) { const tt = PD.voiceErrorText('unsupported'); toast('err', tt[0], tt[1], null, 6000); break; }
+        const inp = $('#ofq'); inp.placeholder = 'बोलिए… · Speak now…';
+        PD.listen({ score: PD.scoreQuery, onInterim: x => { inp.value = x; }, onFinal: x => { inp.value = x; S.of.q = x; $('#oflist').innerHTML = pickerList(); }, onError: c => { const tt = PD.voiceErrorText(c); toast('err', tt[0], tt[1]); } });
+        break;
+      }
+      case 'copyupi': { const v = b.dataset.v; (navigator.clipboard ? navigator.clipboard.writeText(v) : Promise.reject()).then(() => toast('ok', 'UPI ID कॉपी हो गई ✓', v)).catch(() => toast('info', 'UPI ID: ' + v, 'Copy it by hand')); break; }
       case 'nophone': e.preventDefault(); toast('info', 'दुकान का फ़ोन नंबर अभी नहीं जुड़ा', 'Shop phone number not added yet — use WhatsApp'); break;
     }
   });
@@ -463,10 +623,14 @@
       e.preventDefault(); const q = f.q.value.trim(); if (!q) return;
       S.voice = null; S.show = 24; f.q.blur(); go('#/s/' + encodeURIComponent(q));
     } else if (f.dataset.form === 'order') { e.preventDefault(); submitOrder(f); }
+    else if (f.dataset.form === 'ofsearch') { e.preventDefault(); S.of.q = f.querySelector('input').value; $('#oflist').innerHTML = pickerList(); f.querySelector('input').blur(); }
+  });
+  document.addEventListener('input', e => {
+    if (e.target.id === 'ofq') { S.of.q = e.target.value; S.of.show = 20; $('#oflist').innerHTML = pickerList(); }
   });
   document.addEventListener('change', e => {
     if (e.target.id === 'photoInput') onPhoto(e.target.files[0]);
-    if (e.target.name === 'delivery') { const f = ls.get('pd_customer', {}); f.delivery = e.target.value; ls.set('pd_customer', f); viewCart(); }
+    if (e.target.name === 'delivery') { const f = ls.get('pd_customer', {}); f.delivery = e.target.value; ls.set('pd_customer', f); refreshOrder(); }
     if (e.target.id === 'o_same') { $('#billbox').hidden = e.target.checked; }
   });
 
@@ -483,6 +647,10 @@
     else if (parts[0] === 'cart') viewCart();
     else if (parts[0] === 'photo') viewPhoto();
     else if (parts[0] === 'done') viewDone();
+    else if (parts[0] === 'order') viewOrder();
+    else if (parts[0] === 't') viewTrack(parts.slice(1).join('/'));
+    else if (parts[0] === 'mo') viewMyOrder(decodeURIComponent(parts[1] || ''));
+    else if (parts[0] === 'orders') viewMyOrders();
     else viewHome();
   }
   window.addEventListener('hashchange', () => { closeVoice(); route(); });

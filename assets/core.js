@@ -101,7 +101,7 @@
   const DEFAULT_SETTINGS = {
     shopName: 'पूजा ड्रेसेस', shopNameEn: 'Pooja Dresses & Vastravatika',
     whatsapp: '', phone: '', address: '', hours: 'सुबह 9 – रात 9 · 9 am – 9 pm',
-    instagram: '', razorpay: '', deliveryFee: 40, freeAbove: 999, pin: '1234',
+    instagram: '', razorpay: '', upi: '', upiName: '', deliveryFee: 40, freeAbove: 999, pin: '1234',
     festival: { active: true, id: 'diwali', text: 'दिवाली ऑफ़र · 20% तक छूट', textEn: 'Diwali offer · up to 20% off, till Diwali', color: '#b4562f' },
     sale: { active: false, cat: 'all', pct: 20 }
   };
@@ -165,6 +165,10 @@
     backspace: '<path d="M9 5h11v14H9l-6-7z"/><path d="M12 9l5 6M17 9l-5 6"/>',
     cash: '<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/>',
     shop: '<path d="M3 9l2-5h14l2 5M4 9v11h16V9M3 9h18"/><path d="M10 20v-5h4v5"/>',
+    truckgo: '<path d="M2 6h11v10H2zM13 10h4l3 3v3h-7"/><circle cx="6" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/>',
+    list: '<path d="M8 6h13M8 12h13M8 18h13"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/>',
+    rupee: '<path d="M6 4h12M6 9h12M9 4c6 0 6 10 0 10H6l9 7"/>',
+    paste: '<rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6"/>',
     moon: '<path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/>',
     info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>',
     alert: '<circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/>',
@@ -472,6 +476,57 @@
     return 'https://wa.me/' + full + '?text=' + encodeURIComponent(text || '');
   }
 
+  /* ---------- Orders: ids, link tokens, status steps, UPI ---------- */
+  function newOrderId() {
+    const d = new Date(); const pad = n => String(n).padStart(2, '0');
+    return 'PD-' + pad(d.getDate()) + pad(d.getMonth() + 1) + '-' + String(Math.floor(1000 + Math.random() * 9000));
+  }
+  function b64u(bytes) { let s = ''; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+  function unb64u(t) { t = t.replace(/-/g, '+').replace(/_/g, '/'); while (t.length % 4) t += '='; const s = atob(t); const b = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) b[i] = s.charCodeAt(i); return b; }
+  // Packs an object into a short, link-safe text (compressed when the browser can).
+  async function encodeToken(obj) {
+    const bytes = new TextEncoder().encode(JSON.stringify(obj));
+    if (window.CompressionStream) {
+      try { const buf = await new Response(new Blob([bytes]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer(); return 'z' + b64u(new Uint8Array(buf)); } catch (e) { /* fall back */ }
+    }
+    return 'j' + b64u(bytes);
+  }
+  async function decodeToken(tok) {
+    tok = String(tok || '').trim();
+    let bytes = unb64u(tok.slice(1));
+    if (tok[0] === 'z') bytes = new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+    else if (tok[0] !== 'j') throw new Error('bad token');
+    return JSON.parse(new TextDecoder().decode(bytes));
+  }
+  const ORDER_STEPS = {
+    new: { hi: 'ऑर्डर मिला', en: 'Order received' }, pay: { hi: 'भुगतान बाकी', en: 'Payment pending' }, paid: { hi: 'भुगतान मिला', en: 'Payment received' },
+    ok: { hi: 'ऑर्डर पक्का', en: 'Order confirmed' }, packed: { hi: 'पैक हो गया', en: 'Packed' }, out: { hi: 'डिलीवरी पर निकला', en: 'Out for delivery' },
+    ready: { hi: 'दुकान पर तैयार', en: 'Ready at shop' }, done: { hi: 'पहुँच गया', en: 'Delivered' }, picked: { hi: 'ले लिया', en: 'Picked up' }, cancel: { hi: 'रद्द हुआ', en: 'Cancelled' }
+  };
+  // The path an order takes, by payment and delivery choice
+  function orderFlow(pay, delivery) {
+    const pickup = delivery === 'pickup';
+    const head = pay === 'upi' ? ['new', 'pay', 'paid'] : ['new', 'ok'];
+    return head.concat(pickup ? ['packed', 'ready', 'picked'] : ['packed', 'out', 'done']);
+  }
+  function upiLink(pa, pn, amount, note) {
+    return 'upi://pay?pa=' + String(pa).replace(/[^\w.@\-]/g, '') + '&pn=' + encodeURIComponent(pn || '') + '&am=' + Number(amount).toFixed(2) + '&cu=INR&tn=' + encodeURIComponent(note || '');
+  }
+  const PAY_TXT = { upi: { hi: 'UPI', en: 'UPI' }, cod: { hi: 'सामान मिलने पर नकद', en: 'Cash on delivery' }, shop: { hi: 'दुकान पर', en: 'Pay at shop' } };
+  // Open WhatsApp right away (inside the tap) and fill in the link once it is ready, so phones don't block it.
+  async function openWhatsAppLater(makeLink) {
+    let w = null; try { w = window.open('', '_blank'); } catch (e) { w = null; }
+    const link = await makeLink();
+    if (w && !w.closed) { try { w.location.href = link; return link; } catch (e) { /* fall through */ } }
+    location.href = link; return link;
+  }
+  function timeAgo(ts) {
+    const m = Math.round((Date.now() - ts) / 60000);
+    if (m < 1) return 'अभी · just now'; if (m < 60) return m + ' मिनट पहले · ' + m + ' min ago';
+    const h = Math.round(m / 60); if (h < 24) return h + ' घंटे पहले · ' + h + ' h ago';
+    const d = new Date(ts); return d.toLocaleDateString('hi-IN', { day: 'numeric', month: 'short' }) + ' · ' + d.toLocaleTimeString('hi-IN', { hour: 'numeric', minute: '2-digit' });
+  }
+
   /* ---------- Voice: Hindi/Bhojpuri (hi-IN) and English (en-IN) ---------- */
   const VOICE_LANGS = [
     { id: 'hi-IN', hi: 'हिंदी / भोजपुरी', en: 'Hindi / Bhojpuri', example: 'नीला कमीज देखाईं, पाँच सौ के भीतर' },
@@ -528,6 +583,7 @@
   }
 
   window.PD = {
+    newOrderId, encodeToken, decodeToken, ORDER_STEPS, orderFlow, upiLink, PAY_TXT, openWhatsAppLater, timeAgo,
     VOICE_LANGS, voiceSupported, voiceLang, setVoiceLang, listen, voiceErrorText, scoreQuery,
     CATS, TYPES, COLLS, COLORS, SIZE_GROUPS, FESTIVALS, GOES_WITH, DEFAULT_SETTINGS,
     catById, typeById, colorById, collById, ic, pic, placeholderPic, fmt, esc, salePrice, priceInfo, uid,

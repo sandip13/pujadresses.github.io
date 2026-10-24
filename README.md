@@ -41,6 +41,22 @@ This is fine for a few hundred items with photos. For thousands of photos, the n
   the search then maps words such as कमीज/शर्टवा, करिया/उज्जर/हरियर, लइकी, मेहरारू, “पाँच सौ के भीतर” to item types, colours, categories and price limits.
 - Photo search compares the colour (and, for items the owner photographed, the picture itself) to find the same or similar items.
 
+## Orders: form → WhatsApp → UPI payment → tracking
+
+No server is needed; every step travels as a WhatsApp message with a link.
+
+1. **Customer** opens the **order form** (home page button, or `#/order`), picks items, sizes and quantities, writes the address and taps **Send order on WhatsApp**.
+   The message has an order number (e.g. `PD-2410-4821`) and, at the end, a link for the shop owner.
+2. **Owner** taps that link (or pastes the whole message in **Orders → Add order**). The order appears under **Orders** with the next step.
+3. For UPI orders the owner taps **Send payment link**. The customer gets a link that opens a page with a **Pay with UPI app** button
+   (PhonePe / Google Pay / Paytm open with the amount filled in), the UPI ID to copy, and a QR code. An optional Razorpay link can be added per order.
+4. Owner marks **Payment received → Packed → Out for delivery (who, phone, when) → Delivered**. Each tap opens WhatsApp with an update and a tracking link.
+5. The customer's tracking page shows a step-by-step timeline; **My orders** on their phone lists all their orders.
+   Cash-on-delivery and pay-at-shop orders skip the payment step; pickup orders end with “Ready at shop → Picked up”.
+
+Set **Tools → Shop settings → UPI ID** first. A business/merchant UPI ID works best: some apps block payment links to personal UPI IDs.
+Orders live on the owner's phone (included in **Backup**).
+
 ## Develop
 
 Any static file server works, for example `python3 -m http.server`. `tools/make-seed.js` regenerates the demo catalogue.

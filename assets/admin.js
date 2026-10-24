@@ -60,6 +60,7 @@
       A.items = items; A.settings = PD.mergeSettings(settings);
       await persist(false);
     } else { A.items = items; A.settings = PD.mergeSettings(settings); }
+    const ords = await PD.kvGet('orders'); A.orders = Array.isArray(ords) ? ords : [];
   }
 
   /* ---------- PIN ---------- */
@@ -95,6 +96,7 @@
     const a = (href, icon, hi, en, on) => '<a href="' + href + '"' + (on ? ' aria-current="page"' : '') + '><span class="icw">' + ic(icon, 24) + '</span>' + bi(hi, en, '.88rem') + '</a>';
     $('#nav').innerHTML = '<nav class="onav" aria-label="पैनल / Panel"><div class="in">' + a('#/items', 'hanger', 'सामान', 'Items', cur === 'items') +
       '<a href="#/add"><span class="plus">' + ic('plus', 30, 'style="stroke-width:2.6"') + '</span>' + bi('जोड़ें', 'Add item', '.88rem') + '</a>' +
+      a('#/orders', 'list', 'ऑर्डर', 'Orders', cur === 'orders').replace('</span><span class="hi"', '</span>' + ((A.orders || []).filter(o => o.st === 'new').length ? '<span class="badge" style="left:58%">' + A.orders.filter(o => o.st === 'new').length + '</span>' : '') + '<span class="hi"') +
       a('#/tools', 'tools', 'टूल्स', 'Tools', cur === 'tools') + '</div></nav>';
   }
 
@@ -435,6 +437,8 @@
       '<div><label for="s_ph" class="lab">' + bi('कॉल वाला नंबर', 'Phone for calls', '.95rem') + '</label><div class="prefix' + (e.ph ? ' bad' : '') + '"><span>+91</span><input id="s_ph" inputmode="numeric" maxlength="10" value="' + esc(String(st.phone || '').replace(/^\+?91(?=\d{10}$)/, '')) + '"></div>' + fe('ph') + '</div>' +
       '<div><label for="s_ad" class="lab">' + bi('दुकान का पता', 'Shop address', '.95rem') + '</label><textarea id="s_ad" class="fld" rows="2">' + esc(st.address) + '</textarea></div>' +
       '<div><label for="s_hr" class="lab">' + bi('दुकान का समय', 'Shop hours', '.95rem') + '</label><input id="s_hr" class="fld" value="' + esc(st.hours) + '"></div>' +
+      '<div><label for="s_upi" class="lab">' + bi('आपकी UPI ID (पैसे यहाँ आएँगे)', 'Your UPI ID — e.g. 98xxxxxxxx@ybl, shop@okaxis', '.95rem') + '</label><input id="s_upi" class="fld' + (e.upi ? ' bad' : '') + '" autocapitalize="off" autocomplete="off" placeholder="name@bank" value="' + esc(st.upi) + '">' + fe('upi') + '<span class="en" style="margin-top:.3rem">दुकान वाली (बिज़नेस) UPI ID सबसे अच्छी चलती है · A business UPI ID works best with payment links</span></div>' +
+      '<div><label for="s_upin" class="lab">' + bi('UPI पर दिखने वाला नाम', 'Name shown in UPI apps', '.95rem') + '</label><input id="s_upin" class="fld" value="' + esc(st.upiName || st.shopNameEn) + '"></div>' +
       '<div><label for="s_rz" class="lab">' + bi('Razorpay / UPI भुगतान लिंक', 'Payment link (optional)', '.95rem') + '</label><input id="s_rz" class="fld' + (e.rz ? ' bad' : '') + '" inputmode="url" placeholder="https://rzp.io/…" value="' + esc(st.razorpay) + '">' + fe('rz') + '</div>' +
       '<div><label for="s_ig" class="lab">' + bi('Instagram लिंक', 'Instagram link (optional, small in footer)', '.95rem') + '</label><input id="s_ig" class="fld' + (e.ig ? ' bad' : '') + '" inputmode="url" placeholder="https://instagram.com/…" value="' + esc(st.instagram) + '">' + fe('ig') + '</div>' +
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem"><div><label for="s_fee" class="lab">' + bi('डिलीवरी फ़ीस', 'Delivery fee', '.95rem') + '</label><div class="prefix"><span>₹</span><input id="s_fee" inputmode="numeric" value="' + esc(st.deliveryFee) + '"></div></div>' +
@@ -513,8 +517,221 @@
     viewTools();
   }
 
+  /* ---------- orders (come in from customers' WhatsApp messages) ---------- */
+  A.ofilt = 'open'; A.odraft = {};
+  const ORDER_FILTERS = [
+    { id: 'open', hi: 'चालू', en: 'Open', test: o => ['done', 'picked', 'cancel'].indexOf(o.st) < 0 },
+    { id: 'new', hi: 'नए', en: 'New', test: o => o.st === 'new' },
+    { id: 'pay', hi: 'भुगतान बाकी', en: 'Payment due', test: o => o.st === 'pay' },
+    { id: 'pack', hi: 'पैक करने हैं', en: 'To pack', test: o => o.st === 'paid' || o.st === 'ok' },
+    { id: 'send', hi: 'भेजने हैं / रास्ते में', en: 'To deliver', test: o => ['packed', 'out', 'ready'].indexOf(o.st) >= 0 },
+    { id: 'closed', hi: 'पूरे / रद्द', en: 'Done / cancelled', test: o => ['done', 'picked', 'cancel'].indexOf(o.st) >= 0 }
+  ];
+  const stepOf = st => PD.ORDER_STEPS[st] || PD.ORDER_STEPS.new;
+  const orderById = id => A.orders.find(o => o.id === id);
+  async function saveOrders() { await PD.kvSet('orders', A.orders); }
+  function statusChip(st) {
+    const s = stepOf(st); const bg = st === 'new' ? 'var(--terra)' : st === 'pay' ? 'var(--terra-t)' : st === 'cancel' ? 'var(--err-t)' : (st === 'done' || st === 'picked') ? 'var(--ok-t)' : 'var(--sage-t)';
+    const fg = st === 'new' ? 'var(--on-terra)' : st === 'cancel' ? 'var(--err)' : 'var(--ink)';
+    return '<span style="padding:.25rem .55rem;border-radius:.6rem;background:' + bg + ';color:' + fg + ';font-weight:700;font-size:.82rem;text-align:center;line-height:1.15;flex:none">' + s.hi + '<span style="display:block;font-size:.7rem;font-weight:500">' + s.en + '</span></span>';
+  }
+  async function importOrderToken(tok) {
+    let o;
+    try { o = await PD.decodeToken(tok); } catch (e) { return { err: true }; }
+    if (!o || !o.id || !Array.isArray(o.l)) return { err: true };
+    const ex = orderById(o.id);
+    if (ex) return { rec: ex, dup: true };
+    const rec = { id: o.id, o, st: 'new', h: [['new', o.t || Date.now()]], amt: o.tot, rz: '', dp: { n: '', m: '' }, eta: '', got: Date.now() };
+    A.orders.unshift(rec); await saveOrders();
+    return { rec };
+  }
+  function trackPayload(rec) {
+    const o = rec.o; const st = A.settings;
+    return { id: rec.id, t: o.t, st: rec.st, h: rec.h, n: o.c.n, l: o.l.map(x => [x[4], x[1], x[2], x[3]]), tot: o.tot, amt: rec.amt || o.tot, py: o.py, d: o.d,
+      dp: rec.dp && (rec.dp.n || rec.dp.m) ? rec.dp : undefined, eta: rec.eta || undefined, rz: rec.rz || undefined, pa: st.upi || undefined, pn: st.upiName || st.shopNameEn };
+  }
+  function customerMessage(rec, url) {
+    const o = rec.o; const st = A.settings; const amt = fmt(rec.amt || o.tot); const name = o.c.n || '';
+    const sign = '— ' + st.shopName;
+    switch (rec.st) {
+      case 'pay': return ['नमस्ते ' + name + ' जी, आपका ऑर्डर ' + rec.id + ' तैयार है।', 'कुल: ' + amt, '', 'भुगतान के लिए यह लिंक खोलें (PhonePe / Google Pay / Paytm):', url,
+        ...(st.upi ? ['', 'UPI ID: ' + st.upi] : []), ...(rec.rz ? ['या यहाँ भुगतान करें: ' + rec.rz] : []), '', 'भुगतान के बाद स्क्रीनशॉट भेज दें।', sign].join('\n');
+      case 'paid': return ['भुगतान मिल गया ✓ ' + amt + ' — धन्यवाद ' + name + ' जी!', 'ऑर्डर ' + rec.id + ' अब पैक हो रहा है।', 'ऑर्डर कहाँ तक पहुँचा, यहाँ देखें:', url, sign].join('\n');
+      case 'ok': return ['नमस्ते ' + name + ' जी, आपका ऑर्डर ' + rec.id + ' पक्का हो गया ✓', 'भुगतान: ' + (PD.PAY_TXT[o.py] || {}).hi + ' · कुल ' + amt, 'ऑर्डर कहाँ तक पहुँचा, यहाँ देखें:', url, sign].join('\n');
+      case 'packed': return ['ऑर्डर ' + rec.id + ' पैक हो गया ✓ जल्दी भेज रहे हैं।', 'स्थिति देखें:', url, sign].join('\n');
+      case 'out': return ['ऑर्डर ' + rec.id + ' डिलीवरी पर निकल गया है।', ...(rec.dp && rec.dp.n ? ['ला रहे हैं: ' + rec.dp.n + (rec.dp.m ? ' (' + rec.dp.m + ')' : '')] : []), ...(rec.eta ? ['पहुँचेगा: ' + rec.eta] : []),
+        ...(o.py === 'cod' ? [amt + ' नकद तैयार रखें।'] : []), 'ट्रैक करें:', url, sign].join('\n');
+      case 'ready': return ['ऑर्डर ' + rec.id + ' दुकान पर तैयार है ✓ आकर ले जाएँ।', ...(st.address ? ['पता: ' + st.address] : []), ...(st.hours ? ['समय: ' + st.hours] : []), ...(o.py !== 'upi' ? ['भुगतान: ' + amt + ' दुकान पर'] : []), url, sign].join('\n');
+      case 'done': case 'picked': return ['ऑर्डर ' + rec.id + ' पहुँच गया ✓ धन्यवाद ' + name + ' जी!', 'नाप या रंग बदलना हो तो इसी नंबर पर बताएँ।', url, sign].join('\n');
+      case 'cancel': return ['माफ़ कीजिए ' + name + ' जी, ऑर्डर ' + rec.id + ' रद्द कर दिया गया है।' + (rec.why ? ' (' + rec.why + ')' : ''), 'कुछ पूछना हो तो इसी नंबर पर लिखें।', sign].join('\n');
+      default: return ['नमस्ते ' + name + ' जी, आपका ऑर्डर ' + rec.id + ' हमें मिल गया है ✓', url, sign].join('\n');
+    }
+  }
+  async function notifyCustomer(rec) {
+    return PD.openWhatsAppLater(async () => {
+      const tok = await PD.encodeToken(trackPayload(rec));
+      const url = new URL('index.html#/t/' + tok, location.href).href;
+      const m = String(rec.o.c.m || '').replace(/\D/g, '');
+      return 'https://wa.me/' + (m.length === 10 ? '91' + m : m) + '?text=' + encodeURIComponent(customerMessage(rec, url));
+    });
+  }
+  async function moveOrder(rec, st, extra) {
+    rec.st = st; rec.h.push([st, Date.now()]); if (extra) Object.assign(rec, extra);
+    await saveOrders();
+    const s = stepOf(st);
+    A.flash = { hi: s.hi + ' ✓ — ग्राहक को WhatsApp पर भेजें', en: 'Status: ' + s.en + '. Press Send in WhatsApp to tell the customer.' };
+    notifyCustomer(rec);
+    viewOrderDetail(rec.id); window.scrollTo(0, 0);
+  }
+  function viewOrders() {
+    const flash = A.flash; A.flash = null;
+    const f = ORDER_FILTERS.find(x => x.id === A.ofilt) || ORDER_FILTERS[0];
+    const list = A.orders.filter(f.test).sort((a, b) => (b.h[b.h.length - 1][1]) - (a.h[a.h.length - 1][1]));
+    let html = '<header class="ohead"><h1>' + bi('ऑर्डर', 'Orders from customers', '1.5rem') + '</h1><button class="pill-btn" data-oact="paste">' + ic('paste', 20) + '<span>' + bi('ऑर्डर जोड़ें', 'Add order', '.85rem') + '</span></button></header>';
+    if (flash) html += '<div class="okbanner" role="status"><span class="tic">' + ic('check', 18, 'style="stroke-width:3"') + '</span><span><b style="font-size:1.05rem">' + flash.hi + '</b><span style="display:block;font-size:.8rem">' + flash.en + '</span></span></div>';
+    html += '<div class="chips" role="group" aria-label="छाँटें">' + ORDER_FILTERS.map(x => { const n = A.orders.filter(x.test).length; return '<button class="fchip" data-oact="ofilt" data-v="' + x.id + '" aria-pressed="' + (A.ofilt === x.id) + '">' + bi(x.hi + (n ? ' (' + n + ')' : ''), x.en) + '</button>'; }).join('') + '</div>';
+    if (A.pasteOpen) html += pasteBox();
+    if (!A.orders.length) {
+      html += '<div class="ocard sage">' + bi('ऑर्डर ऐसे आएँगे', 'How orders arrive', '1.1rem') +
+        '<ol style="margin:0;padding-left:1.2rem;display:flex;flex-direction:column;gap:.4rem;font-size:.95rem"><li>ग्राहक वेबसाइट पर ऑर्डर फ़ॉर्म भरता है — आपको WhatsApp पर मैसेज आता है।</li><li>मैसेज के आख़िर वाले लिंक को दबाएँ — ऑर्डर यहाँ अपने-आप जुड़ जाएगा।</li><li>लिंक नहीं खुला? पूरा मैसेज कॉपी करके “ऑर्डर जोड़ें” में चिपकाएँ।</li></ol>' +
+        '<span class="en">Customer fills the order form → you get it on WhatsApp → tap the link at the end and it appears here.</span></div>';
+    } else if (!list.length) html += '<div class="empty">' + bi('इसमें कोई ऑर्डर नहीं', 'No orders here', '1rem') + '</div>';
+    else html += '<div class="olist" style="padding-top:.75rem">' + list.map(rec => {
+      const o = rec.o; const last = rec.h[rec.h.length - 1];
+      return '<a class="orow" style="text-decoration:none;color:var(--ink)" href="#/order/' + encodeURIComponent(rec.id) + '"><div class="top1" style="align-items:flex-start">' +
+        '<div style="flex:1;min-width:0"><b style="font-size:1.05rem">' + esc(rec.id) + '</b> <span class="en" style="display:inline">' + PD.timeAgo(last[1]) + '</span>' +
+        '<span class="hi" style="font-size:1rem;margin-top:.15rem">' + esc(o.c.n) + ' · ' + fmt(rec.amt || o.tot) + '</span>' +
+        '<span class="en">' + o.l.reduce((a, x) => a + x[2], 0) + ' items · ' + (o.d === 'pickup' ? 'दुकान से · pickup' : 'घर पर · delivery') + ' · ' + (PD.PAY_TXT[o.py] || {}).en + '</span></div>' + statusChip(rec.st) + '</div></a>';
+    }).join('') + '</div>';
+    html += '<div style="height:1rem"></div>';
+    app.innerHTML = html;
+  }
+  function pasteBox() {
+    return '<section class="ocard"><label for="opaste" class="lab">' + bi('WhatsApp का ऑर्डर मैसेज यहाँ चिपकाएँ', 'Paste the whole order message from WhatsApp', '1rem') + '</label>' +
+      '<textarea id="opaste" class="fld" rows="4" placeholder="नया ऑर्डर PD-… (पूरा मैसेज)"></textarea>' + (A.pasteErr ? '<span class="ferr">' + A.pasteErr[0] + '<span class="en">' + A.pasteErr[1] + '</span></span>' : '') +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem"><button class="btn" data-oact="pasteclose">' + bi('रद्द', 'Cancel', '.9rem') + '</button><button class="btn primary" data-oact="pasteadd">' + bi('ऑर्डर जोड़ें', 'Add order', '.95rem') + '</button></div></section>';
+  }
+  function viewOrderDetail(id) {
+    const rec = orderById(id); if (!rec) { location.hash = '#/orders'; return; }
+    const o = rec.o; const st = A.settings; const flow = PD.orderFlow(o.py, o.d); const cur = flow.indexOf(rec.st);
+    const flash = A.flash; A.flash = null;
+    const dr = A.odraft[id] || (A.odraft[id] = { amt: String(rec.amt || o.tot), rz: rec.rz || '', dpn: (rec.dp || {}).n || ls.get('pd_dp_name', ''), dpm: (rec.dp || {}).m || ls.get('pd_dp_mob', ''), eta: rec.eta || '' });
+    const m = String(o.c.m || '').replace(/\D/g, '');
+    let html = '<header class="ohead"><a class="btn" style="border:0;background:transparent;padding:0 .4rem" href="#/orders">' + ic('back', 24) + '<span>' + bi('ऑर्डर', 'Orders', '.85rem') + '</span></a>' +
+      '<h1 style="flex:1">' + bi(esc(rec.id), PD.timeAgo(rec.h[0][1]), '1.4rem') + '</h1>' + statusChip(rec.st) + '</header>';
+    if (flash) html += '<div class="okbanner" role="status"><span class="tic">' + ic('check', 18, 'style="stroke-width:3"') + '</span><span><b style="font-size:1.02rem">' + flash.hi + '</b><span style="display:block;font-size:.8rem">' + flash.en + '</span></span></div>';
+    // next step
+    html += '<section class="ocard sage">';
+    const next = rec.st === 'cancel' ? null : flow[cur + 1];
+    if (rec.st === 'new' && o.py === 'upi') {
+      html += bi('अगला कदम: भुगतान माँगें', 'Next: ask for payment', '1.1rem') +
+        (st.upi ? '<span class="en">पैसे इस UPI ID पर आएँगे · Money goes to <b>' + esc(st.upi) + '</b></span>' : '<div class="errbanner" style="margin:0"><span class="tic">' + ic('alert', 18, 'style="stroke-width:3"') + '</span><span><b>अपनी UPI ID नहीं डाली है</b><span style="display:block;font-size:.8rem">Add your UPI ID in Tools → Shop settings (or paste a Razorpay link below)</span></span></div>') +
+        '<div><label for="o_amt" class="lab">' + bi('कितने पैसे माँगने हैं', 'Amount to ask', '.95rem') + '</label><div class="prefix"><span>₹</span><input id="o_amt" inputmode="numeric" data-od="amt" value="' + esc(dr.amt) + '"></div></div>' +
+        '<div><label for="o_rz" class="lab">' + bi('Razorpay लिंक (चाहें तो)', 'Razorpay payment link (optional)', '.95rem') + '</label><input id="o_rz" class="fld" inputmode="url" data-od="rz" placeholder="https://rzp.io/…" value="' + esc(dr.rz) + '"></div>' +
+        '<button class="btn primary block big" data-oact="sendpay">' + ic('chat', 26) + '<span>' + bi('WhatsApp पर भुगतान लिंक भेजें', 'Send payment link on WhatsApp', '1.1rem') + '</span></button>';
+    } else if (rec.st === 'new') {
+      html += bi('अगला कदम: ऑर्डर पक्का करें', 'Next: confirm the order', '1.1rem') + '<span class="en">' + (PD.PAY_TXT[o.py] || {}).hi + ' · ' + (PD.PAY_TXT[o.py] || {}).en + '</span>' +
+        '<button class="btn primary block big" data-oact="move" data-v="ok">' + ic('check', 26, 'style="stroke-width:2.6"') + '<span>' + bi('ऑर्डर पक्का करें — ग्राहक को बताएँ', 'Confirm and tell the customer', '1.1rem') + '</span></button>';
+    } else if (rec.st === 'pay') {
+      html += bi('ग्राहक के भुगतान का इंतज़ार', 'Waiting for payment of ' + fmt(rec.amt || o.tot), '1.1rem') + '<span class="en">अपने UPI ऐप में पैसे आए या नहीं देख लें, फिर नीचे दबाएँ · Check your UPI app first</span>' +
+        '<button class="btn primary block big" data-oact="move" data-v="paid">' + ic('rupee', 26) + '<span>' + bi('भुगतान मिल गया ✓', 'Payment received', '1.1rem') + '</span></button>' +
+        '<button class="btn block" data-oact="resend">' + bi('भुगतान लिंक फिर भेजें', 'Send the payment link again', '.95rem') + '</button>';
+    } else if (rec.st === 'paid' || rec.st === 'ok') {
+      html += bi('अगला कदम: पैक करें', 'Next: pack the items', '1.1rem') +
+        '<button class="btn primary block big" data-oact="move" data-v="packed">' + ic('box', 26) + '<span>' + bi('पैक हो गया — ग्राहक को बताएँ', 'Packed — tell the customer', '1.1rem') + '</span></button>';
+    } else if (rec.st === 'packed' && o.d !== 'pickup') {
+      html += bi('अगला कदम: डिलीवरी पर भेजें', 'Next: send for delivery', '1.1rem') +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem"><div><label for="o_dpn" class="lab">' + bi('कौन ले जा रहा है', 'Delivery person', '.9rem') + '</label><input id="o_dpn" class="fld" data-od="dpn" value="' + esc(dr.dpn) + '" placeholder="जैसे: राजू"></div>' +
+        '<div><label for="o_dpm" class="lab">' + bi('उनका मोबाइल', 'Their mobile', '.9rem') + '</label><input id="o_dpm" class="fld" inputmode="numeric" maxlength="10" data-od="dpm" value="' + esc(dr.dpm) + '"></div></div>' +
+        '<div><span class="lab">' + bi('कब तक पहुँचेगा', 'When will it arrive', '.9rem') + '</span><div class="zchips">' + ['1 घंटे में', '2 घंटे में', 'आज शाम', 'कल सुबह'].map(x => '<button class="z" data-oact="eta" data-v="' + x + '" aria-pressed="' + (dr.eta === x) + '">' + x + '</button>').join('') + '</div></div>' +
+        '<button class="btn primary block big" data-oact="sendout">' + ic('truckgo', 26) + '<span>' + bi('डिलीवरी पर भेजें — ग्राहक को बताएँ', 'Out for delivery — tell the customer', '1.1rem') + '</span></button>';
+    } else if (rec.st === 'packed') {
+      html += bi('अगला कदम: ग्राहक को बुलाएँ', 'Next: tell the customer to collect', '1.1rem') +
+        '<button class="btn primary block big" data-oact="move" data-v="ready">' + ic('shop', 26) + '<span>' + bi('दुकान पर तैयार — ग्राहक को बताएँ', 'Ready at shop — tell the customer', '1.1rem') + '</span></button>';
+    } else if (rec.st === 'out' || rec.st === 'ready') {
+      html += bi(rec.st === 'out' ? 'सामान रास्ते में है' : 'ग्राहक के आने का इंतज़ार', rec.st === 'out' ? 'On the way' + (rec.eta ? ' · ' + rec.eta : '') : 'Waiting for pickup', '1.1rem') +
+        '<button class="btn primary block big" data-oact="move" data-v="' + next + '">' + ic('check', 26, 'style="stroke-width:2.6"') + '<span>' + bi(rec.st === 'out' ? 'पहुँच गया ✓' : 'ग्राहक ले गया ✓', rec.st === 'out' ? 'Delivered' : 'Picked up', '1.1rem') + '</span></button>';
+    } else if (rec.st === 'cancel') {
+      html += bi('यह ऑर्डर रद्द है', 'This order is cancelled', '1.1rem');
+    } else {
+      html += bi('ऑर्डर पूरा हो गया ✓', 'Order complete', '1.1rem');
+    }
+    if (rec.st !== 'new') html += '<button class="btn block" style="background:transparent" data-oact="resend">' + ic('chat', 20, 'style="color:var(--sage-d)"') + '<span>' + bi('ग्राहक को अभी की स्थिति फिर भेजें', 'Send current status again', '.9rem') + '</span></button>';
+    html += '</section>';
+    // customer
+    html += '<section class="ocard">' + bi(esc(o.c.n), '+91 ' + esc(m), '1.15rem') +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem"><a class="btn" href="tel:+91' + esc(m) + '">' + ic('phone', 20) + '<span>' + bi('कॉल', 'Call', '.9rem') + '</span></a><a class="btn" target="_blank" rel="noopener" href="https://wa.me/91' + esc(m) + '">' + ic('chat', 20, 'style="color:var(--sage-d)"') + '<span>' + bi('WhatsApp', 'Message', '.9rem') + '</span></a></div>' +
+      (o.d === 'pickup' ? '<span>' + bi('दुकान से ले जाएँगे', 'Will pick up at shop', '1rem') + '</span>' : '<span><span class="en">पता · Address</span><b style="font-weight:600">' + esc(o.c.a) + (o.c.p ? ' — ' + esc(o.c.p) : '') + '</b></span>') +
+      (o.c.b ? '<span><span class="en">बिल का पता · Billing</span>' + esc(o.c.b) + '</span>' : '') +
+      (o.c.x ? '<span class="note warn" style="margin:0"><span><span class="en" style="color:inherit">ग्राहक का नोट · Note</span>' + esc(o.c.x) + '</span></span>' : '') +
+      '<span class="en">भुगतान · Payment: ' + (PD.PAY_TXT[o.py] || {}).hi + ' · ' + (PD.PAY_TXT[o.py] || {}).en + '</span></section>';
+    // items
+    html += '<section class="ocard">' + bi('सामान', 'Items to pack', '1.1rem') + o.l.map(x => {
+      const it = byId(x[0]);
+      return '<div class="row" style="gap:.65rem"><img alt="" src="' + (it ? pic(it) : '') + '" style="width:3.25rem;height:3.9rem;border-radius:.6rem;object-fit:cover;background:var(--sf2);flex:none"><span style="flex:1"><b style="font-weight:600">' + esc(x[4]) + '</b><span class="en">साइज़ ' + esc(x[1] === 'Free' ? 'फ़्री' : (x[1] || '—')) + ' · × ' + x[2] + (it && !it.inStock ? ' · <span style="color:var(--err)">स्टॉक ख़त्म दिखा रहा है</span>' : '') + '</span></span><b>' + fmt(x[3] * x[2]) + '</b></div>';
+    }).join('') +
+      '<div style="height:1px;background:var(--line)"></div><div class="row" style="justify-content:space-between"><span>' + bi('डिलीवरी', 'Delivery', '.9rem') + '</span><b>' + (o.f ? fmt(o.f) : '₹0') + '</b></div>' +
+      '<div class="row" style="justify-content:space-between"><span>' + bi('कुल', 'Total', '1rem') + '</span><b style="font-family:\'Baloo 2\';font-size:1.4rem">' + fmt(rec.amt || o.tot) + '</b></div></section>';
+    // timeline
+    const when = s2 => { const e = rec.h.filter(x => x[0] === s2).pop(); return e ? PD.timeAgo(e[1]) : ''; };
+    html += '<section class="osec">' + '<span class="otitle">' + bi('ऑर्डर की कहानी', 'Order steps', '1.05rem') + '</span><ol class="tline">' + flow.map((s2, i) => {
+      const S2 = stepOf(s2); const state = rec.st === 'cancel' ? (when(s2) ? 'done' : 'todo') : (i < cur ? 'done' : i === cur ? 'now' : 'todo');
+      return '<li class="' + state + '"><span class="dot">' + (state === 'todo' ? '' : ic('check', 14, 'style="stroke-width:3.2"')) + '</span><span>' + bi(S2.hi, S2.en, '1rem') + (when(s2) ? '<span class="en">' + when(s2) + '</span>' : '') + '</span></li>';
+    }).join('') + (rec.st === 'cancel' ? '<li class="now cancel"><span class="dot">' + ic('x', 14, 'style="stroke-width:3.2"') + '</span><span>' + bi('रद्द', 'Cancelled', '1rem') + '<span class="en">' + when('cancel') + '</span></span></li>' : '') + '</ol></section>';
+    // cancel
+    if (['done', 'picked', 'cancel'].indexOf(rec.st) < 0) {
+      html += '<section class="osec" style="padding-bottom:1.5rem">' + (A.ocancel === id
+        ? '<div class="subpanel" style="background:var(--err-t)" role="alertdialog">' + bi('पक्का रद्द करें?', 'Cancel this order? The customer gets a WhatsApp message.', '1.05rem') +
+          '<input class="fld" id="o_why" placeholder="वजह (चाहें तो) · e.g. साइज़ ख़त्म"><div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem"><button class="btn" data-oact="cancelno">' + bi('नहीं', 'Keep', '.9rem') + '</button><button class="btn danger-fill" data-oact="cancelyes">' + bi('हाँ, रद्द करें', 'Yes, cancel', '.9rem') + '</button></div></div>'
+        : '<button class="btn danger block" data-oact="cancelask">' + ic('x', 22) + '<span>' + bi('ऑर्डर रद्द करें', 'Cancel order', '.95rem') + '</span></button>') + '</section>';
+    }
+    app.innerHTML = html;
+  }
+  document.addEventListener('click', async e => {
+    const b = e.target.closest('[data-oact]'); if (!b) return;
+    const k = b.dataset.oact; const id = decodeURIComponent((location.hash.split('/')[2] || '')); const rec = orderById(id);
+    switch (k) {
+      case 'ofilt': A.ofilt = b.dataset.v; keepScroll(viewOrders); break;
+      case 'paste': A.pasteOpen = true; A.pasteErr = null; viewOrders(); setTimeout(() => { const t = $('#opaste'); if (t) t.focus(); }, 50); break;
+      case 'pasteclose': A.pasteOpen = false; viewOrders(); break;
+      case 'pasteadd': {
+        const txt = ($('#opaste') || {}).value || ''; const mm = txt.match(/#\/in\/([A-Za-z0-9_-]+)/);
+        if (!mm) { A.pasteErr = ['इसमें ऑर्डर लिंक नहीं मिला', 'No order link found — copy the whole WhatsApp message, including the link at the end']; viewOrders(); break; }
+        const r = await importOrderToken(mm[1]);
+        if (r.err) { A.pasteErr = ['यह लिंक अधूरा है', 'The link looks cut off — copy the full message again']; viewOrders(); break; }
+        A.pasteOpen = false; A.flash = r.dup ? { hi: 'यह ऑर्डर पहले से है', en: 'Already in your list' } : { hi: 'नया ऑर्डर जुड़ गया ✓', en: r.rec.id + ' added' };
+        location.hash = '#/order/' + encodeURIComponent(r.rec.id); break;
+      }
+      case 'eta': (A.odraft[id] || {}).eta = b.dataset.v; document.querySelectorAll('[data-oact="eta"]').forEach(x => x.setAttribute('aria-pressed', x === b)); break;
+      case 'sendpay': {
+        const dr = A.odraft[id]; const amt = Math.round(+String(dr.amt).replace(/\D/g, ''));
+        if (!(amt > 0)) { toast('err', 'रक़म लिखें', 'Write the amount to ask'); break; }
+        if (dr.rz && !/^https:\/\//.test(dr.rz)) { toast('err', 'लिंक https:// से शुरू होना चाहिए', 'The payment link should start with https://'); break; }
+        if (!A.settings.upi && !dr.rz) { toast('err', 'पहले UPI ID डालें', 'Add your UPI ID in Tools, or paste a payment link', 5000); break; }
+        await moveOrder(rec, 'pay', { amt, rz: dr.rz }); break;
+      }
+      case 'sendout': {
+        const dr = A.odraft[id]; const dm = String(dr.dpm || '').replace(/\D/g, '');
+        if (dm && dm.length !== 10) { toast('err', 'मोबाइल 10 अंक का होना चाहिए', 'Delivery person mobile needs 10 digits'); break; }
+        ls.set('pd_dp_name', dr.dpn || ''); ls.set('pd_dp_mob', dm);
+        await moveOrder(rec, 'out', { dp: { n: (dr.dpn || '').trim(), m: dm }, eta: dr.eta || '' }); break;
+      }
+      case 'move': await moveOrder(rec, b.dataset.v); break;
+      case 'resend': notifyCustomer(rec); toast('ok', 'WhatsApp खुल रहा है', 'Press Send to share the latest status'); break;
+      case 'cancelask': A.ocancel = id; keepScroll(() => viewOrderDetail(id)); break;
+      case 'cancelno': A.ocancel = null; keepScroll(() => viewOrderDetail(id)); break;
+      case 'cancelyes': A.ocancel = null; await moveOrder(rec, 'cancel', { why: (($('#o_why') || {}).value || '').trim() }); break;
+    }
+  });
+  document.addEventListener('input', e => {
+    const t = e.target; if (!t.dataset || !t.dataset.od) return;
+    const id = decodeURIComponent((location.hash.split('/')[2] || '')); const dr = A.odraft[id]; if (!dr) return;
+    dr[t.dataset.od] = t.dataset.od === 'amt' || t.dataset.od === 'dpm' ? t.value.replace(/\D/g, '') : t.value;
+    if (t.dataset.od === 'amt' || t.dataset.od === 'dpm') t.value = dr[t.dataset.od];
+  });
+
   /* ---------- routing ---------- */
-  function curView() { const h = location.hash || '#/items'; if (h.indexOf('#/tools') === 0) return 'tools'; if (h.indexOf('#/items') === 0 || h === '#/') return 'items'; return 'form'; }
+  function curView() { const h = location.hash || '#/items'; if (h.indexOf('#/tools') === 0) return 'tools'; if (h.indexOf('#/order') === 0) return 'orders'; if (h.indexOf('#/items') === 0 || h === '#/') return 'items'; return 'form'; }
   function route() {
     clearUndoIfLeaving();
     if (!sessionStorage.getItem('pd_unlocked')) { viewPin(); return; }
@@ -531,6 +748,17 @@
       history.replaceState(null, '', '#/add'); $('#nav').innerHTML = ''; viewForm();
       toast('info', 'पिछले जैसा भरा है — बस फ़ोटो और नाम बदलें', 'Filled like the earlier item — change photo and name');
     } else if (p[0] === 'multi') { $('#nav').innerHTML = ''; viewMulti(); }
+    else if (p[0] === 'in') {
+      const tok = p.slice(1).join('/'); app.innerHTML = '<div class="empty">ऑर्डर खुल रहा है… · Opening order…</div>';
+      importOrderToken(tok).then(r => {
+        if (r.err) { A.flash = null; A.pasteOpen = true; A.pasteErr = ['यह ऑर्डर लिंक अधूरा है', 'This order link is incomplete — paste the whole WhatsApp message below']; location.replace('#/orders'); return; }
+        A.flash = r.dup ? { hi: 'यह ऑर्डर पहले से है', en: 'Already in your list' } : { hi: 'नया ऑर्डर जुड़ गया ✓', en: r.rec.id + ' — next step is below' };
+        location.replace('#/order/' + encodeURIComponent(r.rec.id));
+      });
+      return;
+    }
+    else if (p[0] === 'orders') { nav('orders'); viewOrders(); }
+    else if (p[0] === 'order') { nav('orders'); viewOrderDetail(decodeURIComponent(p[1] || '')); }
     else if (p[0] === 'tools') {
       A.saleCat = A.settings.sale.cat || 'all'; A.salePct = A.settings.sale.pct || 20; A.fest = Object.assign({}, A.settings.festival); if (!A.fest.active) A.fest.id = 'none'; A.serr = null;
       nav('tools'); viewTools();
@@ -648,15 +876,16 @@
       }
       case 'ssave': {
         const val = id => ($(id).value || '').trim(); const digits = id => val(id).replace(/\D/g, '');
-        const err = {}; const wa = digits('#s_wa'); const ph = digits('#s_ph'); const rz = val('#s_rz'); const ig = val('#s_ig'); const pin = digits('#s_pin');
+        const err = {}; const wa = digits('#s_wa'); const ph = digits('#s_ph'); const rz = val('#s_rz'); const upi = val('#s_upi').replace(/\s/g, ''); const upin = val('#s_upin'); const ig = val('#s_ig'); const pin = digits('#s_pin');
         if (wa && wa.length !== 10) err.wa = ['नंबर में 10 अंक होने चाहिए — अभी ' + wa.length + ' हैं', 'Number needs 10 digits — it has ' + wa.length];
         if (ph && ph.length !== 10) err.ph = ['नंबर में 10 अंक होने चाहिए — अभी ' + ph.length + ' हैं', 'Number needs 10 digits — it has ' + ph.length];
         if (rz && !/^https:\/\//.test(rz)) err.rz = ['लिंक https:// से शुरू होना चाहिए — पूरा लिंक Razorpay से कॉपी करें', 'Link should start with https:// — copy the full link'];
         if (ig && !/^https:\/\//.test(ig)) err.ig = ['लिंक https:// से शुरू होना चाहिए', 'Link should start with https://'];
+        if (upi && !/^[\w.\-]{2,}@[a-zA-Z][\w]{1,}$/.test(upi)) err.upi = ['UPI ID ऐसी होती है: नाम@बैंक (जैसे 98xxxxxxxx@ybl)', 'UPI ID looks like name@bank'];
         if (pin.length !== 4) err.pin = ['PIN 4 अंक का होना चाहिए', 'PIN needs exactly 4 digits'];
         const st = A.settings;
         st.address = val('#s_ad'); st.hours = val('#s_hr'); st.deliveryFee = +digits('#s_fee') || 0; st.freeAbove = +digits('#s_free') || 0;
-        if (!err.wa) st.whatsapp = wa; if (!err.ph) st.phone = ph; if (!err.rz) st.razorpay = rz; if (!err.ig) st.instagram = ig; if (!err.pin) st.pin = pin;
+        if (!err.wa) st.whatsapp = wa; if (!err.ph) st.phone = ph; if (!err.rz) st.razorpay = rz; if (!err.upi) st.upi = upi; st.upiName = upin; if (!err.ig) st.instagram = ig; if (!err.pin) st.pin = pin;
         await persist(); A.serr = Object.keys(err).length ? err : null;
         if (A.serr) { keepScroll(viewTools); toast('err', 'कुछ जानकारी ठीक करनी है', 'Please fix the red boxes — the rest is saved'); }
         else { A.flash = { hi: 'सेव हो गया ✓', en: 'Shop settings saved' }; viewTools(); window.scrollTo(0, 0); }
@@ -665,7 +894,7 @@
       case 'csv': { const i = $('#csvIn'); i.value = ''; i.click(); break; }
       case 'csvsample': download('pooja-items-sample.csv', '﻿नाम,दाम,MRP,कैटेगरी,टाइप,साइज़,कलेक्शन,स्टॉक\nनीली सूती कमीज़,499,799,पुरुष,कमीज़,M L XL,दिवाली,हाँ\nलाल बनारसी साड़ी,1899,2600,साड़ी,बनारसी,Free,दिवाली छठ पूजा,हाँ\nबच्चों का स्वेटर,449,650,बच्चे,स्वेटर,3-5 6-8,सर्दी,नहीं\n', 'text/csv'); break;
       case 'backup': {
-        download('pooja-backup-' + today() + '.json', JSON.stringify({ backupAt: new Date().toISOString(), settings: A.settings, items: A.items }));
+        download('pooja-backup-' + today() + '.json', JSON.stringify({ backupAt: new Date().toISOString(), settings: A.settings, items: A.items, orders: A.orders }));
         ls.set('pd_last_backup', new Date().toLocaleString('hi-IN')); A.flash = { hi: 'बैकअप डाउनलोड हो गया ✓', en: 'Keep this file safe (e.g. send it to yourself on WhatsApp)' }; viewTools(); window.scrollTo(0, 0); break;
       }
       case 'restore': { const i = $('#restoreIn'); i.value = ''; i.click(); break; }
@@ -687,7 +916,7 @@
         const data = JSON.parse(await t.files[0].text());
         if (!Array.isArray(data.items)) throw new Error('bad');
         if (!confirm('इस बैकअप से ' + data.items.length + ' सामान वापस लाएँ? अभी वाला सामान बदल जाएगा।\nRestore ' + data.items.length + ' items? Current items will be replaced.')) return;
-        A.items = data.items; A.settings = PD.mergeSettings(Object.assign({}, A.settings, data.settings || {})); await persist();
+        A.items = data.items; A.settings = PD.mergeSettings(Object.assign({}, A.settings, data.settings || {})); if (Array.isArray(data.orders)) { A.orders = data.orders; await PD.kvSet('orders', A.orders); } await persist();
         A.flash = { hi: data.items.length + ' सामान वापस आ गए ✓', en: 'Backup restored' }; viewTools(); window.scrollTo(0, 0);
       } catch (err) { toast('err', 'यह बैकअप फ़ाइल नहीं खुली', 'This is not a backup file from this panel', 5000); }
     }
